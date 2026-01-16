@@ -32,6 +32,7 @@ const MODEL_PROVIDERS: Record<string, "openai" | "anthropic" | "google"> = {
   "gpt-4o": "openai",
   "gpt-4o-mini": "openai",
   "gpt-4-turbo": "openai",
+  "gpt-5-mini": "openai",
   "claude-3-5-sonnet-20241022": "anthropic",
   "claude-3-5-haiku-20241022": "anthropic",
   "claude-3-opus-20240229": "anthropic",
