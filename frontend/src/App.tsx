@@ -8,6 +8,7 @@ import { Button } from "./components/ui/Button";
 import { SearchInput } from "./components/ui/SearchInput";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { ErrorMessage } from "./components/ui/ErrorMessage";
+import { useConfig } from "./hooks/useConfig";
 import { useDatasets } from "./hooks/useDatasets";
 import { useExamples } from "./hooks/useExamples";
 import { useFilteredDatasets } from "./hooks/useFilteredDatasets";
@@ -19,6 +20,8 @@ function App() {
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
     null
   );
+
+  const { config } = useConfig();
 
   const {
     datasets,
@@ -38,6 +41,11 @@ function App() {
   } = useExamples(selectedDatasetId);
 
   const selectedDataset = datasets.find((d) => d.id === selectedDatasetId);
+
+  const getLangSmithUrl = (datasetId: string) => {
+    if (!config?.langsmith.workspaceId) return null;
+    return `${config.langsmith.baseUrl}/o/${config.langsmith.workspaceId}/datasets/${datasetId}`;
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(undefined, {
@@ -129,6 +137,19 @@ function App() {
                   <span>{selectedDataset.example_count ?? 0} examples</span>
                   <span>·</span>
                   <span>Created {formatDate(selectedDataset.created_at)}</span>
+                  {getLangSmithUrl(selectedDataset.id) && (
+                    <>
+                      <span>·</span>
+                      <a
+                        href={getLangSmithUrl(selectedDataset.id)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        View in LangSmith
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
 
