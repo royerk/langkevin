@@ -4,8 +4,10 @@ import { DatasetList } from "./components/datasets/DatasetList";
 import { ExampleViewer } from "./components/examples/ExampleViewer";
 import { AlignmentEditor } from "./components/alignment/AlignmentEditor";
 import { Button } from "./components/ui/Button";
+import { SearchInput } from "./components/ui/SearchInput";
 import { useDatasets } from "./hooks/useDatasets";
 import { useExamples } from "./hooks/useExamples";
+import { useFilteredDatasets } from "./hooks/useFilteredDatasets";
 
 type View = "dataset-selection" | "alignment-editor";
 
@@ -21,6 +23,9 @@ function App() {
     error: datasetsError,
     refetch: refetchDatasets,
   } = useDatasets();
+
+  const { filteredDatasets, searchQuery, setSearchQuery, hasSearchFilter } =
+    useFilteredDatasets(datasets);
 
   const {
     examples,
@@ -66,19 +71,25 @@ function App() {
       <main className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         <aside className="w-80 border-r border-gray-200 bg-white flex flex-col shrink-0">
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200 space-y-3">
             <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
               Datasets
             </h2>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search datasets..."
+            />
           </div>
           <div className="flex-1 overflow-y-auto p-4">
             <DatasetList
-              datasets={datasets}
+              datasets={filteredDatasets}
               loading={datasetsLoading}
               error={datasetsError}
               selectedId={selectedDatasetId}
               onSelect={setSelectedDatasetId}
               onRetry={refetchDatasets}
+              hasSearchFilter={hasSearchFilter}
             />
           </div>
         </aside>
