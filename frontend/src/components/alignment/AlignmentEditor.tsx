@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import type { Message, Dataset, ScoreConfig, AlignmentDetails } from "../../types/api";
+import type { Message, Dataset, ScoreConfig, AlignmentDetails, ModelConfig } from "../../types/api";
 import { useFeedback } from "../../hooks/useFeedback";
 import { useEvaluation } from "../../hooks/useEvaluation";
 import { PromptEditor } from "./PromptEditor";
@@ -60,6 +60,13 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
     },
     [examples]
   );
+
+  const handleLoadPrompt = useCallback((messages: Message[], modelConfig?: ModelConfig) => {
+    setMessages(messages);
+    if (modelConfig?.model) {
+      setModel(modelConfig.model);
+    }
+  }, []);
 
   const handleRun = async () => {
     clear();
@@ -170,7 +177,7 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
       <LoadPromptModal
         isOpen={loadModalOpen}
         onClose={() => setLoadModalOpen(false)}
-        onLoad={setMessages}
+        onLoad={handleLoadPrompt}
       />
       <SavePromptModal
         isOpen={saveModalOpen}

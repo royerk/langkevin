@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import type { PromptSummary, PromptDetails, Message } from "../../types/api";
+import type { PromptSummary, PromptDetails, Message, ModelConfig } from "../../types/api";
 import { fetchPrompts, fetchPrompt } from "../../lib/api";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
@@ -10,7 +10,7 @@ import { ErrorMessage } from "../ui/ErrorMessage";
 interface LoadPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoad: (messages: Message[]) => void;
+  onLoad: (messages: Message[], modelConfig?: ModelConfig) => void;
 }
 
 export function LoadPromptModal({ isOpen, onClose, onLoad }: LoadPromptModalProps) {
@@ -74,7 +74,7 @@ export function LoadPromptModal({ isOpen, onClose, onLoad }: LoadPromptModalProp
 
   function handleLoad() {
     if (preview) {
-      onLoad(preview.messages);
+      onLoad(preview.messages, preview.modelConfig);
       handleClose();
     }
   }

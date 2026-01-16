@@ -8,7 +8,9 @@ import type {
   PromptDetails,
   PromptMessage,
   PushPromptRequest,
+  ModelConfig,
 } from "../types/langsmith.js";
+import { AVAILABLE_MODELS } from "./llm.js";
 
 export interface ExampleWithFeedback extends Example {
   feedback: Record<string, Feedback>;
@@ -260,6 +262,36 @@ function extractAllVariables(messages: PromptMessage[]): string[] {
   return [...new Set(allVars)];
 }
 
+function mapToSupportedModel(name: string): string | undefined {
+  if (AVAILABLE_MODELS.includes(name)) return name;
+  const lower = name.toLowerCase();
+  return AVAILABLE_MODELS.find((m) => lower.includes(m.toLowerCase()));
+}
+
+function extractModelConfig(manifest: Record<string, unknown>): ModelConfig | undefined {
+  const kwargs = manifest.kwargs as Record<string, unknown> | undefined;
+  if (!kwargs) return undefined;
+
+  // LangSmith stores model config with ls_ prefix
+  const modelName = kwargs.ls_model_name ?? kwargs.model_name ?? kwargs.model;
+
+  // Extract all ls_ prefixed params (temperature, max_tokens, reasoning_effort, etc.)
+  const params: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(kwargs)) {
+    if (key.startsWith("ls_") && key !== "ls_model_name" && key !== "ls_provider" && key !== "ls_model_type") {
+      // Remove ls_ prefix for cleaner param names
+      params[key.replace("ls_", "")] = value;
+    }
+  }
+
+  if (!modelName && Object.keys(params).length === 0) return undefined;
+
+  return {
+    model: typeof modelName === "string" ? mapToSupportedModel(modelName) : undefined,
+    params: Object.keys(params).length > 0 ? params : undefined,
+  };
+}
+
 export async function listPrompts(): Promise<PromptSummary[]> {
   const prompts = await collect(getClient().listPrompts({ isPublic: false }));
   return prompts.map(promptToSummary);
@@ -281,6 +313,7 @@ export async function pullPrompt(name: string): Promise<PromptDetails> {
     description: prompt.description ?? null,
     tags: prompt.tags,
     readme: prompt.readme ?? null,
+    modelConfig: extractModelConfig(commit.manifest),
   };
 }
 

@@ -22,12 +22,18 @@ export interface PromptMessage {
   content: string;
 }
 
+export interface ModelConfig {
+  model?: string;
+  params?: Record<string, unknown>;
+}
+
 export interface PromptDetails {
   name: string;
   messages: PromptMessage[];
   description: string | null;
   tags: string[];
   readme: string | null;
+  modelConfig?: ModelConfig;
 }
 
 export interface AlignmentDetails {
