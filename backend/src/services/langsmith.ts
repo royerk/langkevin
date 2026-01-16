@@ -251,7 +251,7 @@ function extractAllVariables(messages: PromptMessage[]): string[] {
 }
 
 export async function listPrompts(): Promise<PromptSummary[]> {
-  const prompts = await collect(getClient().listPrompts());
+  const prompts = await collect(getClient().listPrompts({ isPublic: false }));
   return prompts.map(promptToSummary);
 }
 
