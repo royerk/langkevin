@@ -129,6 +129,9 @@ export function AlignmentTable({
               <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
                 Eval
               </th>
+              <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Reasoning
+              </th>
               <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide text-center">
                 Aligned?
               </th>

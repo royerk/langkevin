@@ -19,6 +19,12 @@ function truncateJson(obj: unknown, maxLength = 50): string {
   return str.slice(0, maxLength) + "...";
 }
 
+function truncateText(text: string | null | undefined, maxLength = 100): string {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + "...";
+}
+
 function formatScore(score: number | boolean | string | null | undefined): string {
   if (score === null || score === undefined) return "-";
   if (typeof score === "boolean") return score ? "true" : "false";
@@ -43,7 +49,7 @@ export function AlignmentTableRow({
     evalScore !== undefined &&
     checkAlignment(evalScore, targetScore, scoreConfig);
 
-  const [expandedCell, setExpandedCell] = useState<"input" | "output" | null>(null);
+  const [expandedCell, setExpandedCell] = useState<"input" | "output" | "reasoning" | null>(null);
 
   return (
     <>
@@ -108,13 +114,35 @@ export function AlignmentTableRow({
               Error
             </span>
           ) : (
-            <span
-              className="text-blue-600 cursor-help"
-              title={evaluationResult.response?.reasoning || evaluationResult.response?.raw}
-            >
+            <span className="text-blue-600">
               {formatScore(evaluationResult.response?.score)}
             </span>
           )
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </td>
+      <td
+        className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 group"
+        onClick={() => evaluationResult?.response?.reasoning && setExpandedCell("reasoning")}
+      >
+        {evaluationResult?.response?.reasoning ? (
+          <div className="flex items-center gap-1">
+            <span className="truncate text-gray-700">{truncateText(evaluationResult.response.reasoning)}</span>
+            <svg
+              className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+              />
+            </svg>
+          </div>
         ) : (
           <span className="text-gray-400">-</span>
         )}
@@ -162,6 +190,16 @@ export function AlignmentTableRow({
       onClose={() => setExpandedCell(null)}
     >
       <JsonTree data={example.outputs} defaultExpanded showFullStrings />
+    </Modal>
+
+    <Modal
+      title="Reasoning"
+      isOpen={expandedCell === "reasoning"}
+      onClose={() => setExpandedCell(null)}
+    >
+      <div className="whitespace-pre-wrap text-sm text-gray-700">
+        {evaluationResult?.response?.reasoning || "No reasoning available"}
+      </div>
     </Modal>
     </>
   );
