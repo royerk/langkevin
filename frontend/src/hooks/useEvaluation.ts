@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import type { Message, EvaluationResponse } from "../types/api";
+import type { Message, EvaluationResponse, ScoreConfig } from "../types/api";
 import { runEvaluation } from "../lib/api";
 
 export interface EvaluationResult {
@@ -15,7 +15,8 @@ interface UseEvaluation {
   run: (
     messages: Message[],
     model: string,
-    examples: Array<{ id: string; inputs: Record<string, unknown>; outputs?: Record<string, unknown> }>
+    examples: Array<{ id: string; inputs: Record<string, unknown>; outputs?: Record<string, unknown> }>,
+    scoreConfig?: ScoreConfig
   ) => Promise<void>;
   clear: () => void;
 }
@@ -29,7 +30,8 @@ export function useEvaluation(): UseEvaluation {
     async (
       messages: Message[],
       model: string,
-      examples: Array<{ id: string; inputs: Record<string, unknown>; outputs?: Record<string, unknown> }>
+      examples: Array<{ id: string; inputs: Record<string, unknown>; outputs?: Record<string, unknown> }>,
+      scoreConfig?: ScoreConfig
     ) => {
       setRunning(true);
       setProgress({ current: 0, total: examples.length });
@@ -45,6 +47,7 @@ export function useEvaluation(): UseEvaluation {
               inputs: example.inputs,
               outputs: example.outputs ?? {},
             },
+            scoreConfig,
           });
           newResults.set(example.id, {
             exampleId: example.id,

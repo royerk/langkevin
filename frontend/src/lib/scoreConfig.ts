@@ -1,4 +1,4 @@
-import type { ExampleWithFeedback, ScoreConfig } from "../types/api";
+import type { ExampleWithFeedback, ScoreConfig, EvaluationResponse } from "../types/api";
 
 /**
  * Get unique values from a feedback column
@@ -95,4 +95,45 @@ export function inferScoreConfig(
   // Otherwise treat as categories
   const categories = getUniqueValuesForColumn(examples, feedbackKey);
   return { type: "categories", categories };
+}
+
+/**
+ * Check if evaluator output aligns with target feedback, handling type coercion
+ */
+export function checkAlignment(
+  evalScore: EvaluationResponse["score"],
+  targetScore: unknown,
+  config: ScoreConfig
+): boolean {
+  if (evalScore === null || evalScore === undefined) return false;
+  if (targetScore === null || targetScore === undefined) return false;
+
+  // For boolean type, handle coercion between boolean/number/string
+  if (config.type === "boolean") {
+    const evalBool = normalizeToBool(evalScore);
+    const targetBool = normalizeToBool(targetScore);
+    return evalBool === targetBool;
+  }
+
+  // For continuous type, compare as numbers
+  if (config.type === "continuous") {
+    const evalNum = typeof evalScore === "number" ? evalScore : parseFloat(String(evalScore));
+    const targetNum = typeof targetScore === "number" ? targetScore : parseFloat(String(targetScore));
+    if (isNaN(evalNum) || isNaN(targetNum)) return false;
+    return evalNum === targetNum;
+  }
+
+  // For categories, compare as strings
+  if (config.type === "categories") {
+    return String(evalScore) === String(targetScore);
+  }
+
+  return false;
+}
+
+function normalizeToBool(value: unknown): boolean | null {
+  if (typeof value === "boolean") return value;
+  if (value === 1 || value === "1" || value === "true") return true;
+  if (value === 0 || value === "0" || value === "false") return false;
+  return null;
 }

@@ -1,14 +1,18 @@
-import type { ExampleWithFeedback, EvaluationResponse } from "../../types/api";
+import type { ExampleWithFeedback, EvaluationResponse, ScoreConfig } from "../../types/api";
 import { AlignmentTableRow } from "./AlignmentTableRow";
+import { ScoreTypeConfig } from "./ScoreTypeConfig";
 import { LoadingSpinner } from "../ui/LoadingSpinner";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { EmptyState } from "../ui/EmptyState";
+import { checkAlignment } from "../../lib/scoreConfig";
 
 interface AlignmentTableProps {
   examples: ExampleWithFeedback[];
   feedbackKeys: string[];
   targetFeedbackKey: string | null;
   onSelectTarget: (key: string) => void;
+  scoreConfig: ScoreConfig;
+  onScoreConfigChange: (config: ScoreConfig) => void;
   results: Map<string, { response: EvaluationResponse | null; error: string | null }>;
   loading: boolean;
   error: string | null;
@@ -20,6 +24,8 @@ export function AlignmentTable({
   feedbackKeys,
   targetFeedbackKey,
   onSelectTarget,
+  scoreConfig,
+  onScoreConfigChange,
   results,
   loading,
   error,
@@ -54,7 +60,7 @@ export function AlignmentTable({
     if (!result?.response || !targetFeedbackKey) return false;
     const targetFeedback = ex.feedback[targetFeedbackKey];
     const targetScore = targetFeedback?.score ?? targetFeedback?.value;
-    return targetScore === result.response.score;
+    return checkAlignment(result.response.score, targetScore, scoreConfig);
   }).length;
 
   const evaluatedCount = examples.filter((ex) => results.has(ex.id)).length;
@@ -75,6 +81,16 @@ export function AlignmentTable({
           </div>
         )}
       </div>
+      {targetFeedbackKey && (
+        <div className="px-4 py-2 border-b border-gray-200">
+          <ScoreTypeConfig
+            config={scoreConfig}
+            onChange={onScoreConfigChange}
+            targetFeedbackKey={targetFeedbackKey}
+            examples={examples}
+          />
+        </div>
+      )}
       <div className="flex-1 overflow-auto">
         <table className="w-full text-left">
           <thead className="sticky top-0 bg-gray-50 border-b border-gray-200">
@@ -110,6 +126,7 @@ export function AlignmentTable({
                 targetFeedbackKey={targetFeedbackKey}
                 onSelectTarget={onSelectTarget}
                 evaluationResult={results.get(example.id) ?? null}
+                scoreConfig={scoreConfig}
               />
             ))}
           </tbody>
