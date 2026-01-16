@@ -15,7 +15,6 @@ interface Run {
   [key: string]: unknown;
 }
 
-const WORKSPACE_ID = "a9dc4931-9737-494b-85d5-0f57a7e694dd";
 const API_URL = "https://api.smith.langchain.com";
 
 // Lazy singleton client instance
@@ -23,10 +22,14 @@ let client: Client | null = null;
 
 export function getClient(): Client {
   if (!client) {
+    const workspaceId = process.env.LANGSMITH_WORKSPACE_ID;
+    if (!workspaceId) {
+      throw new Error("LANGSMITH_WORKSPACE_ID not set");
+    }
     client = new Client({
       webUrl: "https://smith.langchain.com",
       apiUrl: API_URL,
-      workspaceId: WORKSPACE_ID,
+      workspaceId,
     });
   }
   return client;
