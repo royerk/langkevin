@@ -36,11 +36,11 @@ export function AlignmentTableRow({
     targetScore === evalScore;
 
   return (
-    <tr className="border-b border-gray-800 hover:bg-gray-800/30">
-      <td className="px-3 py-2 text-sm text-gray-300 font-mono" title={JSON.stringify(example.inputs, null, 2)}>
+    <tr className="border-b border-gray-200 hover:bg-gray-50">
+      <td className="px-3 py-2 text-sm text-gray-700 font-mono" title={JSON.stringify(example.inputs, null, 2)}>
         {truncateJson(example.inputs)}
       </td>
-      <td className="px-3 py-2 text-sm text-gray-300 font-mono" title={JSON.stringify(example.outputs, null, 2)}>
+      <td className="px-3 py-2 text-sm text-gray-700 font-mono" title={JSON.stringify(example.outputs, null, 2)}>
         {example.outputs ? truncateJson(example.outputs) : "-"}
       </td>
       {feedbackKeys.map((key) => (
@@ -55,25 +55,25 @@ export function AlignmentTableRow({
       <td className="px-3 py-2 text-sm">
         {evaluationResult ? (
           evaluationResult.error ? (
-            <span className="text-red-400" title={evaluationResult.error}>
+            <span className="text-red-600" title={evaluationResult.error}>
               Error
             </span>
           ) : (
             <span
-              className="text-blue-400 cursor-help"
+              className="text-blue-600 cursor-help"
               title={evaluationResult.response?.reasoning || evaluationResult.response?.raw}
             >
               {evaluationResult.response?.score ?? "-"}
             </span>
           )
         ) : (
-          <span className="text-gray-500">-</span>
+          <span className="text-gray-400">-</span>
         )}
       </td>
       <td className="px-3 py-2 text-center">
         {evaluationResult && targetFeedbackKey ? (
           isAligned ? (
-            <span className="text-green-400" title="Aligned">
+            <span className="text-emerald-600" title="Aligned">
               <svg className="w-5 h-5 inline" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -83,7 +83,7 @@ export function AlignmentTableRow({
               </svg>
             </span>
           ) : (
-            <span className="text-red-400" title="Not aligned">
+            <span className="text-red-600" title="Not aligned">
               <svg className="w-5 h-5 inline" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -94,7 +94,7 @@ export function AlignmentTableRow({
             </span>
           )
         ) : (
-          <span className="text-gray-500">-</span>
+          <span className="text-gray-400">-</span>
         )}
       </td>
     </tr>

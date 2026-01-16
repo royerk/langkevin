@@ -25,7 +25,7 @@ export function PromptEditor({
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">
+        <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
           Prompt Editor
         </h3>
         <div className="flex items-center gap-3">

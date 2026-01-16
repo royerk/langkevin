@@ -60,15 +60,15 @@ export function AlignmentTable({
   const evaluatedCount = examples.filter((ex) => results.has(ex.id)).length;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">
+    <div className="flex flex-col h-full bg-white">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
+        <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
           Alignment Table
         </h3>
         {evaluatedCount > 0 && targetFeedbackKey && (
-          <div className="text-sm text-gray-400">
+          <div className="text-sm text-gray-600">
             Aligned:{" "}
-            <span className="text-green-400 font-medium">
+            <span className="text-emerald-600 font-medium">
               {alignedCount}/{evaluatedCount}
             </span>{" "}
             ({Math.round((alignedCount / evaluatedCount) * 100)}%)
@@ -77,26 +77,26 @@ export function AlignmentTable({
       </div>
       <div className="flex-1 overflow-auto">
         <table className="w-full text-left">
-          <thead className="sticky top-0 bg-gray-900 border-b border-gray-700">
+          <thead className="sticky top-0 bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide">
+              <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
                 Input
               </th>
-              <th className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide">
+              <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
                 Output
               </th>
               {feedbackKeys.map((key) => (
                 <th
                   key={key}
-                  className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide"
+                  className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide"
                 >
                   {key}
                 </th>
               ))}
-              <th className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide">
+              <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
                 Eval
               </th>
-              <th className="px-3 py-2 text-xs font-medium text-gray-400 uppercase tracking-wide text-center">
+              <th className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide text-center">
                 Aligned?
               </th>
             </tr>

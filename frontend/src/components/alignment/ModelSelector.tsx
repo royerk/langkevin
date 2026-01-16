@@ -31,7 +31,7 @@ export function ModelSelector({ value, onChange }: ModelSelectorProps) {
     return (
       <select
         disabled
-        className="bg-gray-700 text-gray-400 text-sm rounded-lg px-3 py-2 border border-gray-600"
+        className="bg-gray-100 text-gray-500 text-sm rounded-lg px-3 py-2 border border-gray-300"
       >
         <option>Loading models...</option>
       </select>
@@ -42,7 +42,7 @@ export function ModelSelector({ value, onChange }: ModelSelectorProps) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="bg-gray-700 text-gray-200 text-sm rounded-lg px-3 py-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+      className="bg-white text-gray-700 text-sm rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
     >
       {Object.entries(MODEL_GROUPS).map(([provider, models]) => (
         <optgroup key={provider} label={provider}>

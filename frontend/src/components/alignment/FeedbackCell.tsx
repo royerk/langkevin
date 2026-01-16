@@ -29,11 +29,11 @@ export function FeedbackCell({
           name="targetFeedback"
           checked={isTarget}
           onChange={() => onSelectTarget(feedbackKey)}
-          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"
+          className="w-3 h-3 text-blue-600 bg-white border-gray-300 focus:ring-blue-500"
           title="Select as target for alignment"
         />
         <span
-          className={`${feedback ? "text-gray-200" : "text-gray-500"}`}
+          className={`${feedback ? "text-gray-700" : "text-gray-400"}`}
           title={feedback?.comment ?? undefined}
         >
           {displayValue}

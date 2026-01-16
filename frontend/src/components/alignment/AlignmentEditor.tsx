@@ -55,7 +55,7 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-4 p-4 border-b border-gray-800">
+      <div className="flex items-center gap-4 p-4 border-b border-gray-200 bg-white">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <svg
             className="w-4 h-4 mr-1"
@@ -73,9 +73,9 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
           Back
         </Button>
         <div>
-          <h2 className="text-lg font-semibold text-white">{dataset.name}</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{dataset.name}</h2>
           {dataset.description && (
-            <p className="text-sm text-gray-400">{dataset.description}</p>
+            <p className="text-sm text-gray-600">{dataset.description}</p>
           )}
         </div>
       </div>
@@ -95,8 +95,8 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
             />
           </div>
         </Panel>
-        <PanelResizeHandle className="h-2 bg-gray-800 hover:bg-gray-700 transition-colors cursor-row-resize flex items-center justify-center">
-          <div className="w-8 h-1 bg-gray-600 rounded" />
+        <PanelResizeHandle className="h-2 bg-gray-100 hover:bg-gray-200 transition-colors cursor-row-resize flex items-center justify-center border-y border-gray-200">
+          <div className="w-8 h-1 bg-gray-400 rounded" />
         </PanelResizeHandle>
         <Panel defaultSize={60} minSize={30}>
           <AlignmentTable
