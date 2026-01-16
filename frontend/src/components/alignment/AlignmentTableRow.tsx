@@ -1,6 +1,9 @@
+import { useState } from "react";
 import type { ExampleWithFeedback, EvaluationResponse, ScoreConfig } from "../../types/api";
 import { FeedbackCell } from "./FeedbackCell";
 import { checkAlignment } from "../../lib/scoreConfig";
+import { Modal } from "../ui/Modal";
+import { JsonTree } from "../examples/JsonTree";
 
 interface AlignmentTableRowProps {
   example: ExampleWithFeedback;
@@ -40,13 +43,56 @@ export function AlignmentTableRow({
     evalScore !== undefined &&
     checkAlignment(evalScore, targetScore, scoreConfig);
 
+  const [expandedCell, setExpandedCell] = useState<"input" | "output" | null>(null);
+
   return (
+    <>
     <tr className="border-b border-gray-200 hover:bg-gray-50">
-      <td className="px-3 py-2 text-sm text-gray-700 font-mono" title={JSON.stringify(example.inputs, null, 2)}>
-        {truncateJson(example.inputs)}
+      <td
+        className="px-3 py-2 text-sm text-gray-700 font-mono cursor-pointer hover:bg-gray-100 group"
+        onClick={() => setExpandedCell("input")}
+      >
+        <div className="flex items-center gap-1">
+          <span className="truncate">{truncateJson(example.inputs)}</span>
+          <svg
+            className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+            />
+          </svg>
+        </div>
       </td>
-      <td className="px-3 py-2 text-sm text-gray-700 font-mono" title={JSON.stringify(example.outputs, null, 2)}>
-        {example.outputs ? truncateJson(example.outputs) : "-"}
+      <td
+        className="px-3 py-2 text-sm text-gray-700 font-mono cursor-pointer hover:bg-gray-100 group"
+        onClick={() => example.outputs && setExpandedCell("output")}
+      >
+        {example.outputs ? (
+          <div className="flex items-center gap-1">
+            <span className="truncate">{truncateJson(example.outputs)}</span>
+            <svg
+              className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+              />
+            </svg>
+          </div>
+        ) : (
+          "-"
+        )}
       </td>
       {feedbackKeys.map((key) => (
         <FeedbackCell
@@ -101,5 +147,22 @@ export function AlignmentTableRow({
         )}
       </td>
     </tr>
+
+    <Modal
+      title="Input"
+      isOpen={expandedCell === "input"}
+      onClose={() => setExpandedCell(null)}
+    >
+      <JsonTree data={example.inputs} defaultExpanded />
+    </Modal>
+
+    <Modal
+      title="Output"
+      isOpen={expandedCell === "output"}
+      onClose={() => setExpandedCell(null)}
+    >
+      <JsonTree data={example.outputs} defaultExpanded />
+    </Modal>
+    </>
   );
 }
