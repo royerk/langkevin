@@ -1,10 +1,12 @@
-import { useState, useCallback } from "react";
-import type { Message, Dataset, ScoreConfig } from "../../types/api";
+import { useState, useCallback, useMemo } from "react";
+import type { Message, Dataset, ScoreConfig, AlignmentDetails, ModelConfig } from "../../types/api";
 import { useFeedback } from "../../hooks/useFeedback";
 import { useEvaluation } from "../../hooks/useEvaluation";
 import { PromptEditor } from "./PromptEditor";
 import { AlignmentTable } from "./AlignmentTable";
 import { ConfigPanel } from "./ConfigPanel";
+import { LoadPromptModal } from "./LoadPromptModal";
+import { SavePromptModal } from "./SavePromptModal";
 import { Button } from "../ui/Button";
 import { inferScoreConfig, checkAlignment } from "../../lib/scoreConfig";
 
@@ -34,6 +36,8 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
   const [model, setModel] = useState("gpt-4o-mini");
   const [targetFeedbackKey, setTargetFeedbackKey] = useState<string | null>(null);
   const [scoreConfig, setScoreConfig] = useState<ScoreConfig>({ type: "continuous", min: 1, max: 5 });
+  const [loadModalOpen, setLoadModalOpen] = useState(false);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
 
   const {
     examples,
@@ -57,6 +61,13 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
     [examples]
   );
 
+  const handleLoadPrompt = useCallback((messages: Message[], modelConfig?: ModelConfig) => {
+    setMessages(messages);
+    if (modelConfig?.model) {
+      setModel(modelConfig.model);
+    }
+  }, []);
+
   const handleRun = async () => {
     clear();
     await run(messages, model, examples, scoreConfig);
@@ -72,6 +83,22 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
   }).length;
 
   const evaluatedCount = examples.filter((ex) => results.has(ex.id)).length;
+
+  // Calculate alignment score and details for saving
+  const alignmentScore = useMemo(() => {
+    if (evaluatedCount === 0) return null;
+    return (alignedCount / evaluatedCount) * 100;
+  }, [alignedCount, evaluatedCount]);
+
+  const alignmentDetails = useMemo((): AlignmentDetails | null => {
+    if (!targetFeedbackKey || evaluatedCount === 0) return null;
+    return {
+      datasetName: dataset.name,
+      targetColumn: targetFeedbackKey,
+      alignedCount,
+      totalCount: evaluatedCount,
+    };
+  }, [dataset.name, targetFeedbackKey, alignedCount, evaluatedCount]);
 
   return (
     <div className="flex flex-col h-full">
@@ -113,6 +140,8 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
             onRun={handleRun}
             running={running}
             progress={progress}
+            onLoadFromHub={() => setLoadModalOpen(true)}
+            onSaveToHub={() => setSaveModalOpen(true)}
           />
         </div>
         {/* Right: Config Panel */}
@@ -143,6 +172,20 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
           onRetry={refetchFeedback}
         />
       </div>
+
+      {/* Modals */}
+      <LoadPromptModal
+        isOpen={loadModalOpen}
+        onClose={() => setLoadModalOpen(false)}
+        onLoad={handleLoadPrompt}
+      />
+      <SavePromptModal
+        isOpen={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        messages={messages}
+        alignmentScore={alignmentScore}
+        alignmentDetails={alignmentDetails}
+      />
     </div>
   );
 }

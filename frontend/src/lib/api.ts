@@ -7,6 +7,9 @@ import type {
   EvaluationResponse,
   PaginatedExamples,
   PaginationParams,
+  PromptSummary,
+  PromptDetails,
+  PushPromptRequest,
 } from "../types/api";
 
 const API_BASE = "/api";
@@ -71,4 +74,26 @@ export async function runEvaluation(
     body: JSON.stringify(request),
   });
   return handleResponse<EvaluationResponse>(response);
+}
+
+// Prompt Hub API
+export async function fetchPrompts(): Promise<PromptSummary[]> {
+  const response = await fetch(`${API_BASE}/prompts`);
+  return handleResponse<PromptSummary[]>(response);
+}
+
+export async function fetchPrompt(name: string): Promise<PromptDetails> {
+  const response = await fetch(`${API_BASE}/prompts/${encodeURIComponent(name)}`);
+  return handleResponse<PromptDetails>(response);
+}
+
+export async function savePrompt(
+  request: PushPromptRequest
+): Promise<{ url: string }> {
+  const response = await fetch(`${API_BASE}/prompts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  return handleResponse<{ url: string }>(response);
 }
