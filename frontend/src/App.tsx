@@ -27,6 +27,11 @@ function App() {
     loading: examplesLoading,
     error: examplesError,
     refetch: refetchExamples,
+    page,
+    pageSize,
+    total,
+    setPage,
+    setPageSize,
   } = useExamples(selectedDatasetId);
 
   const selectedDataset = datasets.find((d) => d.id === selectedDatasetId);
@@ -102,6 +107,11 @@ function App() {
               error={examplesError}
               hasSelection={!!selectedDatasetId}
               onRetry={refetchExamples}
+              total={total}
+              page={page}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
             />
           </div>
         </section>

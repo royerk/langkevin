@@ -21,6 +21,18 @@ export interface Example {
   source_run_id?: string;
 }
 
+export interface PaginatedExamples {
+  examples: Example[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface PaginationParams {
+  limit?: number;
+  offset?: number;
+}
+
 export interface ApiError {
   error: string;
 }

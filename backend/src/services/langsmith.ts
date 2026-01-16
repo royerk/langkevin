@@ -82,15 +82,44 @@ export async function getDataset(datasetId: string): Promise<Dataset> {
   return getClient().readDataset({ datasetId });
 }
 
-export async function listExamples(datasetId: string): Promise<Example[]> {
-  return collect(getClient().listExamples({ datasetId }));
+export interface PaginatedExamples {
+  examples: Example[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface PaginationParams {
+  limit?: number;
+  offset?: number;
+}
+
+export async function listExamples(
+  datasetId: string,
+  params?: PaginationParams
+): Promise<PaginatedExamples> {
+  const limit = params?.limit ?? 20;
+  const offset = params?.offset ?? 0;
+
+  // Get total count from dataset
+  const dataset = await getDataset(datasetId);
+  const total = dataset.example_count ?? 0;
+
+  // Fetch paginated examples
+  const examples = await collect(
+    getClient().listExamples({ datasetId, limit, offset })
+  );
+
+  return { examples, total, limit, offset };
 }
 
 export async function listFeedbackForDataset(
   datasetId: string
 ): Promise<FeedbackResult> {
   const client = getClient();
-  const examples = await listExamples(datasetId);
+  // Fetch all examples (no pagination) for feedback - uses high limit
+  const allExamples = await collect(client.listExamples({ datasetId }));
+  const examples = allExamples;
 
   // Collect all run IDs by example using direct API call
   // SDK v0.4.7 has a bug where it sends reference_example as string instead of array

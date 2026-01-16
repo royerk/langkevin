@@ -3,6 +3,7 @@ import { ExampleCard } from "./ExampleCard";
 import { LoadingSpinner } from "../ui/LoadingSpinner";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { EmptyState } from "../ui/EmptyState";
+import { Pagination } from "../ui/Pagination";
 
 interface ExampleViewerProps {
   examples: Example[];
@@ -10,6 +11,11 @@ interface ExampleViewerProps {
   error: string | null;
   hasSelection: boolean;
   onRetry?: () => void;
+  total: number;
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
 }
 
 export function ExampleViewer({
@@ -18,6 +24,11 @@ export function ExampleViewer({
   error,
   hasSelection,
   onRetry,
+  total,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }: ExampleViewerProps) {
   if (!hasSelection) {
     return (
@@ -64,11 +75,29 @@ export function ExampleViewer({
     );
   }
 
+  // Calculate display index based on pagination
+  const startIndex = (page - 1) * pageSize;
+
   return (
-    <div className="space-y-4">
-      {examples.map((example, index) => (
-        <ExampleCard key={example.id} example={example} index={index} />
-      ))}
+    <div className="flex flex-col h-full">
+      <div className="flex-1 space-y-4 overflow-y-auto">
+        {examples.map((example, index) => (
+          <ExampleCard
+            key={example.id}
+            example={example}
+            index={startIndex + index}
+          />
+        ))}
+      </div>
+      {total > 0 && (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+        />
+      )}
     </div>
   );
 }

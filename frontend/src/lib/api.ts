@@ -1,10 +1,11 @@
 import type {
   Dataset,
-  Example,
   ApiError,
   FeedbackResult,
   EvaluationRequest,
   EvaluationResponse,
+  PaginatedExamples,
+  PaginationParams,
 } from "../types/api";
 
 const API_BASE = "/api";
@@ -27,9 +28,21 @@ export async function fetchDataset(datasetId: string): Promise<Dataset> {
   return handleResponse<Dataset>(response);
 }
 
-export async function fetchExamples(datasetId: string): Promise<Example[]> {
-  const response = await fetch(`${API_BASE}/datasets/${datasetId}/examples`);
-  return handleResponse<Example[]>(response);
+export async function fetchExamples(
+  datasetId: string,
+  params?: PaginationParams
+): Promise<PaginatedExamples> {
+  const searchParams = new URLSearchParams();
+  if (params?.limit !== undefined) {
+    searchParams.set("limit", String(params.limit));
+  }
+  if (params?.offset !== undefined) {
+    searchParams.set("offset", String(params.offset));
+  }
+  const query = searchParams.toString();
+  const url = `${API_BASE}/datasets/${datasetId}/examples${query ? `?${query}` : ""}`;
+  const response = await fetch(url);
+  return handleResponse<PaginatedExamples>(response);
 }
 
 export async function fetchFeedback(datasetId: string): Promise<FeedbackResult> {

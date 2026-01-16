@@ -33,8 +33,25 @@ router.get("/datasets/:id", async (req, res) => {
 // GET /api/datasets/:id/examples - Get examples for a dataset
 router.get("/datasets/:id/examples", async (req, res) => {
   try {
-    const examples = await listExamples(req.params.id);
-    res.json(examples);
+    // Parse pagination params
+    const limitStr = req.query.limit as string | undefined;
+    const offsetStr = req.query.offset as string | undefined;
+
+    const limit = limitStr ? parseInt(limitStr, 10) : undefined;
+    const offset = offsetStr ? parseInt(offsetStr, 10) : undefined;
+
+    // Validate params
+    if (limit !== undefined && (isNaN(limit) || limit < 1 || limit > 100)) {
+      res.status(400).json({ error: "limit must be between 1 and 100" });
+      return;
+    }
+    if (offset !== undefined && (isNaN(offset) || offset < 0)) {
+      res.status(400).json({ error: "offset must be a non-negative integer" });
+      return;
+    }
+
+    const result = await listExamples(req.params.id, { limit, offset });
+    res.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     res.status(500).json({ error: message });
