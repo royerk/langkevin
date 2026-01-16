@@ -78,3 +78,10 @@ export interface EvaluationResponse {
   reasoning: string;
   raw: string;
 }
+
+export interface AppConfig {
+  langsmith: {
+    workspaceId: string | null;
+    baseUrl: string;
+  };
+}

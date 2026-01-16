@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import healthRouter from "./routes/health.js";
+import configRouter from "./routes/config.js";
 import datasetsRouter from "./routes/datasets.js";
 import evaluationRouter from "./routes/evaluation.js";
 
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api", healthRouter);
+app.use("/api", configRouter);
 app.use("/api", datasetsRouter);
 app.use("/api", evaluationRouter);
 

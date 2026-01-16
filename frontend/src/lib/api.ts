@@ -1,6 +1,7 @@
 import type {
   Dataset,
   ApiError,
+  AppConfig,
   FeedbackResult,
   EvaluationRequest,
   EvaluationResponse,
@@ -16,6 +17,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
     throw new Error(error.error || "An unknown error occurred");
   }
   return response.json();
+}
+
+export async function fetchConfig(): Promise<AppConfig> {
+  const response = await fetch(`${API_BASE}/config`);
+  return handleResponse<AppConfig>(response);
 }
 
 export async function fetchDatasets(): Promise<Dataset[]> {
