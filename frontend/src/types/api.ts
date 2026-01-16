@@ -1,0 +1,62 @@
+export interface Dataset {
+  id: string;
+  name: string;
+  description: string;
+  tenant_id: string;
+  data_type?: "kv" | "llm" | "chat";
+  created_at: string;
+  modified_at: string;
+  example_count?: number;
+  session_count?: number;
+}
+
+export interface Example {
+  id: string;
+  dataset_id: string;
+  inputs: Record<string, unknown>;
+  outputs?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  modified_at?: string;
+  source_run_id?: string;
+}
+
+export interface ApiError {
+  error: string;
+}
+
+export interface Feedback {
+  id: string;
+  run_id: string;
+  key: string;
+  score: number | null;
+  value: unknown;
+  comment: string | null;
+  created_at: string;
+}
+
+export interface ExampleWithFeedback extends Example {
+  feedback: Record<string, Feedback>;
+}
+
+export interface FeedbackResult {
+  examples: ExampleWithFeedback[];
+  feedbackKeys: string[];
+}
+
+export interface Message {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+export interface EvaluationRequest {
+  messages: Message[];
+  model: string;
+  variables: Record<string, unknown>;
+}
+
+export interface EvaluationResponse {
+  score: number | null;
+  reasoning: string;
+  raw: string;
+}
