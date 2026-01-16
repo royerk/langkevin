@@ -3,9 +3,9 @@ interface DatasetBadgeProps {
 }
 
 const badgeStyles = {
-  kv: "bg-emerald-500/20 text-emerald-400",
-  llm: "bg-purple-500/20 text-purple-400",
-  chat: "bg-blue-500/20 text-blue-400",
+  kv: "bg-emerald-100 text-emerald-700",
+  llm: "bg-purple-100 text-purple-700",
+  chat: "bg-blue-100 text-blue-700",
 };
 
 const badgeLabels = {

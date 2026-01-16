@@ -15,16 +15,16 @@ export function DatasetCard({ dataset, isSelected, onSelect }: DatasetCardProps)
         w-full text-left p-4 rounded-lg border transition-all duration-150
         ${
           isSelected
-            ? "bg-gray-800 border-indigo-500 ring-1 ring-indigo-500/20 shadow-lg shadow-indigo-500/5"
-            : "bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800"
+            ? "bg-blue-50 border-blue-500 ring-1 ring-blue-500/20 shadow-sm"
+            : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
         }
       `}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <h3 className="font-medium text-white truncate">{dataset.name}</h3>
+          <h3 className="font-medium text-gray-900 truncate">{dataset.name}</h3>
           {dataset.description && (
-            <p className="text-sm text-gray-400 mt-1 line-clamp-2">
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
               {dataset.description}
             </p>
           )}
