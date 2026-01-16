@@ -9,8 +9,9 @@ import { useFeedback } from "../../hooks/useFeedback";
 import { useEvaluation } from "../../hooks/useEvaluation";
 import { PromptEditor } from "./PromptEditor";
 import { AlignmentTable } from "./AlignmentTable";
+import { ConfigPanel } from "./ConfigPanel";
 import { Button } from "../ui/Button";
-import { inferScoreConfig } from "../../lib/scoreConfig";
+import { inferScoreConfig, checkAlignment } from "../../lib/scoreConfig";
 
 interface AlignmentEditorProps {
   dataset: Dataset;
@@ -66,6 +67,17 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
     await run(messages, model, examples, scoreConfig);
   };
 
+  // Calculate alignment stats
+  const alignedCount = examples.filter((ex) => {
+    const result = results.get(ex.id);
+    if (!result?.response || !targetFeedbackKey) return false;
+    const targetFeedback = ex.feedback[targetFeedbackKey];
+    const targetScore = targetFeedback?.score ?? targetFeedback?.value;
+    return checkAlignment(result.response.score, targetScore, scoreConfig);
+  }).length;
+
+  const evaluatedCount = examples.filter((ex) => results.has(ex.id)).length;
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -96,30 +108,51 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
 
       {/* Resizable panels */}
       <PanelGroup direction="vertical" className="flex-1">
-        <Panel defaultSize={40} minSize={20}>
-          <div className="h-full p-4 overflow-hidden">
-            <PromptEditor
-              messages={messages}
-              model={model}
-              onMessagesChange={setMessages}
-              onModelChange={setModel}
-              onRun={handleRun}
-              running={running}
-              progress={progress}
-            />
-          </div>
+        {/* Top section - horizontal split */}
+        <Panel defaultSize={40} minSize={25}>
+          <PanelGroup direction="horizontal">
+            {/* Left: Prompt Editor */}
+            <Panel defaultSize={50} minSize={30}>
+              <div className="h-full p-4 overflow-hidden">
+                <PromptEditor
+                  messages={messages}
+                  model={model}
+                  onMessagesChange={setMessages}
+                  onModelChange={setModel}
+                  onRun={handleRun}
+                  running={running}
+                  progress={progress}
+                />
+              </div>
+            </Panel>
+            <PanelResizeHandle className="w-2 bg-gray-100 hover:bg-gray-200 transition-colors cursor-col-resize flex items-center justify-center border-x border-gray-200">
+              <div className="h-8 w-1 bg-gray-400 rounded" />
+            </PanelResizeHandle>
+            {/* Right: Config Panel */}
+            <Panel defaultSize={50} minSize={30}>
+              <ConfigPanel
+                feedbackKeys={feedbackKeys}
+                targetFeedbackKey={targetFeedbackKey}
+                onSelectTarget={handleSelectTarget}
+                scoreConfig={scoreConfig}
+                onScoreConfigChange={setScoreConfig}
+                examples={examples}
+                alignedCount={alignedCount}
+                evaluatedCount={evaluatedCount}
+              />
+            </Panel>
+          </PanelGroup>
         </Panel>
         <PanelResizeHandle className="h-2 bg-gray-100 hover:bg-gray-200 transition-colors cursor-row-resize flex items-center justify-center border-y border-gray-200">
           <div className="w-8 h-1 bg-gray-400 rounded" />
         </PanelResizeHandle>
+        {/* Bottom section - full width table */}
         <Panel defaultSize={60} minSize={30}>
           <AlignmentTable
             examples={examples}
             feedbackKeys={feedbackKeys}
             targetFeedbackKey={targetFeedbackKey}
-            onSelectTarget={handleSelectTarget}
             scoreConfig={scoreConfig}
-            onScoreConfigChange={setScoreConfig}
             results={results}
             loading={feedbackLoading}
             error={feedbackError}
