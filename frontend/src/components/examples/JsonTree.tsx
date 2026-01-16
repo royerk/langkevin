@@ -3,6 +3,7 @@ import { useState } from "react";
 interface JsonTreeProps {
   data: unknown;
   defaultExpanded?: boolean;
+  showFullStrings?: boolean;
 }
 
 interface JsonNodeProps {
@@ -10,9 +11,10 @@ interface JsonNodeProps {
   value: unknown;
   depth: number;
   defaultExpanded: boolean;
+  showFullStrings: boolean;
 }
 
-function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
+function JsonNode({ keyName, value, depth, defaultExpanded, showFullStrings }: JsonNodeProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   const indent = depth * 16;
@@ -46,6 +48,15 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
   }
 
   if (typeof value === "string") {
+    if (showFullStrings) {
+      return (
+        <div style={{ paddingLeft: indent }} className="font-mono text-sm py-0.5">
+          {keyName && <span className="text-gray-600">{keyName}: </span>}
+          <span className="text-emerald-600 whitespace-pre-wrap">"{value}"</span>
+        </div>
+      );
+    }
+
     const isMultiline = value.includes("\n");
     const displayValue = isMultiline ? value.split("\n")[0] + "..." : value;
     const shouldTruncate = value.length > 100;
@@ -97,6 +108,7 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
                 value={item}
                 depth={depth + 1}
                 defaultExpanded={defaultExpanded}
+                showFullStrings={showFullStrings}
               />
             ))}
             <div
@@ -149,6 +161,7 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
                 value={val}
                 depth={depth + 1}
                 defaultExpanded={defaultExpanded}
+                showFullStrings={showFullStrings}
               />
             ))}
             <div
@@ -172,10 +185,10 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
   );
 }
 
-export function JsonTree({ data, defaultExpanded = true }: JsonTreeProps) {
+export function JsonTree({ data, defaultExpanded = true, showFullStrings = false }: JsonTreeProps) {
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto">
-      <JsonNode value={data} depth={0} defaultExpanded={defaultExpanded} />
+      <JsonNode value={data} depth={0} defaultExpanded={defaultExpanded} showFullStrings={showFullStrings} />
     </div>
   );
 }
