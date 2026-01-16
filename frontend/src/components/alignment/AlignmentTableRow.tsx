@@ -153,7 +153,7 @@ export function AlignmentTableRow({
       isOpen={expandedCell === "input"}
       onClose={() => setExpandedCell(null)}
     >
-      <JsonTree data={example.inputs} defaultExpanded />
+      <JsonTree data={example.inputs} defaultExpanded showFullStrings />
     </Modal>
 
     <Modal
@@ -161,7 +161,7 @@ export function AlignmentTableRow({
       isOpen={expandedCell === "output"}
       onClose={() => setExpandedCell(null)}
     >
-      <JsonTree data={example.outputs} defaultExpanded />
+      <JsonTree data={example.outputs} defaultExpanded showFullStrings />
     </Modal>
     </>
   );
