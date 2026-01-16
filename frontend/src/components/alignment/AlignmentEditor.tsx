@@ -1,16 +1,12 @@
 import { useState, useCallback } from "react";
-import {
-  Panel,
-  Group as PanelGroup,
-  Separator as PanelResizeHandle,
-} from "react-resizable-panels";
 import type { Message, Dataset, ScoreConfig } from "../../types/api";
 import { useFeedback } from "../../hooks/useFeedback";
 import { useEvaluation } from "../../hooks/useEvaluation";
 import { PromptEditor } from "./PromptEditor";
 import { AlignmentTable } from "./AlignmentTable";
+import { ConfigPanel } from "./ConfigPanel";
 import { Button } from "../ui/Button";
-import { inferScoreConfig } from "../../lib/scoreConfig";
+import { inferScoreConfig, checkAlignment } from "../../lib/scoreConfig";
 
 interface AlignmentEditorProps {
   dataset: Dataset;
@@ -66,10 +62,21 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
     await run(messages, model, examples, scoreConfig);
   };
 
+  // Calculate alignment stats
+  const alignedCount = examples.filter((ex) => {
+    const result = results.get(ex.id);
+    if (!result?.response || !targetFeedbackKey) return false;
+    const targetFeedback = ex.feedback[targetFeedbackKey];
+    const targetScore = targetFeedback?.score ?? targetFeedback?.value;
+    return checkAlignment(result.response.score, targetScore, scoreConfig);
+  }).length;
+
+  const evaluatedCount = examples.filter((ex) => results.has(ex.id)).length;
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-4 p-4 border-b border-gray-200 bg-white">
+      <div className="flex-shrink-0 flex items-center gap-4 p-4 border-b border-gray-200 bg-white">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <svg
             className="w-4 h-4 mr-1"
@@ -94,39 +101,48 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
         </div>
       </div>
 
-      {/* Resizable panels */}
-      <PanelGroup direction="vertical" className="flex-1">
-        <Panel defaultSize={40} minSize={20}>
-          <div className="h-full p-4 overflow-hidden">
-            <PromptEditor
-              messages={messages}
-              model={model}
-              onMessagesChange={setMessages}
-              onModelChange={setModel}
-              onRun={handleRun}
-              running={running}
-              progress={progress}
-            />
-          </div>
-        </Panel>
-        <PanelResizeHandle className="h-2 bg-gray-100 hover:bg-gray-200 transition-colors cursor-row-resize flex items-center justify-center border-y border-gray-200">
-          <div className="w-8 h-1 bg-gray-400 rounded" />
-        </PanelResizeHandle>
-        <Panel defaultSize={60} minSize={30}>
-          <AlignmentTable
-            examples={examples}
+      {/* Top section - Prompt Editor + Config Panel */}
+      <div className="flex-shrink-0 flex border-b border-gray-200" style={{ height: '320px' }}>
+        {/* Left: Prompt Editor */}
+        <div className="flex-1 p-4 overflow-auto border-r border-gray-200">
+          <PromptEditor
+            messages={messages}
+            model={model}
+            onMessagesChange={setMessages}
+            onModelChange={setModel}
+            onRun={handleRun}
+            running={running}
+            progress={progress}
+          />
+        </div>
+        {/* Right: Config Panel */}
+        <div className="w-80 flex-shrink-0 overflow-auto">
+          <ConfigPanel
             feedbackKeys={feedbackKeys}
             targetFeedbackKey={targetFeedbackKey}
             onSelectTarget={handleSelectTarget}
             scoreConfig={scoreConfig}
             onScoreConfigChange={setScoreConfig}
-            results={results}
-            loading={feedbackLoading}
-            error={feedbackError}
-            onRetry={refetchFeedback}
+            examples={examples}
+            alignedCount={alignedCount}
+            evaluatedCount={evaluatedCount}
           />
-        </Panel>
-      </PanelGroup>
+        </div>
+      </div>
+
+      {/* Bottom section - full width table */}
+      <div className="flex-1 min-h-0 overflow-auto">
+        <AlignmentTable
+          examples={examples}
+          feedbackKeys={feedbackKeys}
+          targetFeedbackKey={targetFeedbackKey}
+          scoreConfig={scoreConfig}
+          results={results}
+          loading={feedbackLoading}
+          error={feedbackError}
+          onRetry={refetchFeedback}
+        />
+      </div>
     </div>
   );
 }
