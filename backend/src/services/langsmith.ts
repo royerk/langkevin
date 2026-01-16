@@ -181,9 +181,13 @@ function manifestToMessages(manifest: Record<string, unknown>): PromptMessage[] 
   const messages: PromptMessage[] = [];
 
   // Handle ChatPromptTemplate format from LangChain
-  // Messages are at manifest.kwargs.messages, not manifest.messages
-  const kwargs = manifest.kwargs as { messages?: LangChainManifestMessage[] } | undefined;
-  const promptMessages = kwargs?.messages;
+  // With includeModel=true, manifest is a RunnableSequence: kwargs.first.kwargs.messages
+  // Without includeModel, manifest is a ChatPromptTemplate: kwargs.messages
+  const kwargs = manifest.kwargs as {
+    messages?: LangChainManifestMessage[];
+    first?: { kwargs?: { messages?: LangChainManifestMessage[] } };
+  } | undefined;
+  const promptMessages = kwargs?.first?.kwargs?.messages ?? kwargs?.messages;
 
   if (Array.isArray(promptMessages)) {
     for (const msg of promptMessages) {
@@ -272,14 +276,32 @@ function extractModelConfig(manifest: Record<string, unknown>): ModelConfig | un
   const kwargs = manifest.kwargs as Record<string, unknown> | undefined;
   if (!kwargs) return undefined;
 
-  // LangSmith stores model config with ls_ prefix
-  const modelName = kwargs.ls_model_name ?? kwargs.model_name ?? kwargs.model;
+  // When includeModel=true, manifest is a RunnableSequence with model at kwargs.last.kwargs.bound.kwargs
+  const last = kwargs.last as Record<string, unknown> | undefined;
+  const bound = (last?.kwargs as Record<string, unknown> | undefined)?.bound as Record<string, unknown> | undefined;
+  const boundKwargs = bound?.kwargs as Record<string, unknown> | undefined;
 
-  // Extract all ls_ prefixed params (temperature, max_tokens, reasoning_effort, etc.)
+  if (boundKwargs) {
+    const modelName = boundKwargs.model;
+    // Extract model params like temperature, max_tokens, etc.
+    const params: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(boundKwargs)) {
+      if (key !== "model" && key !== "openai_api_key" && key !== "extra_headers" && key !== "service_tier") {
+        params[key] = value;
+      }
+    }
+
+    return {
+      model: typeof modelName === "string" ? mapToSupportedModel(modelName) : undefined,
+      params: Object.keys(params).length > 0 ? params : undefined,
+    };
+  }
+
+  // Fallback: check for ls_ prefixed params (legacy format)
+  const modelName = kwargs.ls_model_name ?? kwargs.model_name ?? kwargs.model;
   const params: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(kwargs)) {
     if (key.startsWith("ls_") && key !== "ls_model_name" && key !== "ls_provider" && key !== "ls_model_type") {
-      // Remove ls_ prefix for cleaner param names
       params[key.replace("ls_", "")] = value;
     }
   }
@@ -304,7 +326,8 @@ export async function pullPrompt(name: string): Promise<PromptDetails> {
     throw new Error(`Prompt not found: ${name}`);
   }
 
-  const commit = await client.pullPromptCommit(name);
+  // Use includeModel: true to get model config in the manifest
+  const commit = await client.pullPromptCommit(name, { includeModel: true });
   const messages = manifestToMessages(commit.manifest);
 
   return {
