@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
   Panel,
-  PanelGroup,
-  PanelResizeHandle,
+  Group as PanelGroup,
+  Separator as PanelResizeHandle,
 } from "react-resizable-panels";
 import type { Message, Dataset } from "../../types/api";
 import { useFeedback } from "../../hooks/useFeedback";

@@ -10,7 +10,13 @@ export interface FeedbackResult {
   feedbackKeys: string[];
 }
 
+interface Run {
+  id: string;
+  [key: string]: unknown;
+}
+
 const WORKSPACE_ID = "a9dc4931-9737-494b-85d5-0f57a7e694dd";
+const API_URL = "https://api.smith.langchain.com";
 
 // Lazy singleton client instance
 let client: Client | null = null;
@@ -19,11 +25,41 @@ export function getClient(): Client {
   if (!client) {
     client = new Client({
       webUrl: "https://smith.langchain.com",
-      apiUrl: "https://api.smith.langchain.com",
+      apiUrl: API_URL,
       workspaceId: WORKSPACE_ID,
     });
   }
   return client;
+}
+
+// Direct API call to list runs by reference example IDs
+// SDK v0.4.7 has a bug where it sends reference_example as string instead of array
+async function listRunsByReferenceExamples(exampleIds: string[]): Promise<Run[]> {
+  const apiKey = process.env.LANGSMITH_API_KEY;
+  if (!apiKey) {
+    throw new Error("LANGSMITH_API_KEY not set");
+  }
+
+  const response = await fetch(`${API_URL}/runs/query`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      reference_example: exampleIds,
+      select: ["id", "reference_example_id"],
+      limit: 100,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Failed to fetch runs: ${response.status} ${text}`);
+  }
+
+  const data = await response.json();
+  return data.runs ?? [];
 }
 
 // Helper to collect async iterables into arrays
@@ -53,21 +89,24 @@ export async function listFeedbackForDataset(
   const client = getClient();
   const examples = await listExamples(datasetId);
 
-  // Collect all run IDs by example
+  // Collect all run IDs by example using direct API call
+  // SDK v0.4.7 has a bug where it sends reference_example as string instead of array
+  const exampleIds = examples.map((e) => e.id);
+  const runs = exampleIds.length ? await listRunsByReferenceExamples(exampleIds) : [];
+
+  // Build example -> runIds mapping from run.reference_example_id
   const exampleRunMap = new Map<string, string[]>();
   const allRunIds: string[] = [];
 
-  // For each example, get runs that reference it
-  await Promise.all(
-    examples.map(async (example) => {
-      const runs = await collect(
-        client.listRuns({ referenceExampleId: example.id, limit: 100 })
-      );
-      const runIds = runs.map((r) => r.id);
-      exampleRunMap.set(example.id, runIds);
-      allRunIds.push(...runIds);
-    })
-  );
+  for (const run of runs) {
+    const refExampleId = (run as { reference_example_id?: string }).reference_example_id;
+    if (refExampleId) {
+      const existing = exampleRunMap.get(refExampleId) ?? [];
+      existing.push(run.id);
+      exampleRunMap.set(refExampleId, existing);
+      allRunIds.push(run.id);
+    }
+  }
 
   // Fetch all feedback in one batch
   const feedbackItems = allRunIds.length
