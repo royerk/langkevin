@@ -16,6 +16,27 @@ When building LLM evaluators, you want them to match human judgment. But iterati
 
 LangKevin streamlines this loop into a single interface.
 
+## Quick Start
+
+```bash
+# Install dependencies (uses Bun)
+bun install
+
+# Set up environment variables
+cp .env.example .env  # then edit with your API keys
+
+# Run both frontend and backend
+bun run dev
+```
+
+Open http://localhost:5173 in your browser.
+
+### Run individually
+```bash
+bun run dev:backend    # Express API on port 3001
+bun run dev:frontend   # Vite dev server on port 5173
+```
+
 ## MVP Features
 
 1. **Connect to LangSmith** - Authenticate and browse available datasets
