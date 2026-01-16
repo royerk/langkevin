@@ -85,3 +85,37 @@ export interface AppConfig {
     baseUrl: string;
   };
 }
+
+// Prompt Hub types
+export interface PromptSummary {
+  id: string;
+  name: string;
+  description: string | null;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PromptDetails {
+  name: string;
+  messages: Message[];
+  description: string | null;
+  tags: string[];
+  readme: string | null;
+}
+
+export interface AlignmentDetails {
+  datasetName: string;
+  targetColumn: string;
+  alignedCount: number;
+  totalCount: number;
+}
+
+export interface PushPromptRequest {
+  name: string;
+  messages: Message[];
+  description?: string;
+  tags?: string[];
+  alignmentScore?: number;
+  alignmentDetails?: AlignmentDetails;
+}
