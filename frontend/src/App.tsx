@@ -42,7 +42,7 @@ function App() {
   // Alignment editor view
   if (view === "alignment-editor" && selectedDataset) {
     return (
-      <div className="min-h-screen bg-gray-900 flex flex-col">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
         <main className="flex-1 overflow-hidden">
           <AlignmentEditor
@@ -56,13 +56,13 @@ function App() {
 
   // Dataset selection view
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       <main className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-80 border-r border-gray-800 flex flex-col shrink-0">
-          <div className="p-4 border-b border-gray-800">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">
+        <aside className="w-80 border-r border-gray-200 bg-white flex flex-col shrink-0">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
               Datasets
             </h2>
           </div>
@@ -79,14 +79,14 @@ function App() {
         </aside>
 
         {/* Main content */}
-        <section className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+        <section className="flex-1 flex flex-col overflow-hidden bg-white">
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-gray-900">
                 {selectedDataset?.name ?? "Examples"}
               </h2>
               {selectedDataset?.description && (
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   {selectedDataset.description}
                 </p>
               )}
