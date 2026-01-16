@@ -3,6 +3,7 @@ import {
   listDatasets,
   getDataset,
   listExamples,
+  listFeedbackForDataset,
 } from "../services/langsmith.js";
 
 const router = Router();
@@ -34,6 +35,17 @@ router.get("/datasets/:id/examples", async (req, res) => {
   try {
     const examples = await listExamples(req.params.id);
     res.json(examples);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    res.status(500).json({ error: message });
+  }
+});
+
+// GET /api/datasets/:id/feedback - Get examples with feedback for a dataset
+router.get("/datasets/:id/feedback", async (req, res) => {
+  try {
+    const result = await listFeedbackForDataset(req.params.id);
+    res.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     res.status(500).json({ error: message });
