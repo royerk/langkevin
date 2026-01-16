@@ -10,13 +10,6 @@ export interface FeedbackResult {
   feedbackKeys: string[];
 }
 
-interface Run {
-  id: string;
-  [key: string]: unknown;
-}
-
-const API_URL = "https://api.smith.langchain.com";
-
 // Lazy singleton client instance
 let client: Client | null = null;
 
@@ -28,41 +21,11 @@ export function getClient(): Client {
     }
     client = new Client({
       webUrl: "https://smith.langchain.com",
-      apiUrl: API_URL,
+      apiUrl: "https://api.smith.langchain.com",
       workspaceId,
     });
   }
   return client;
-}
-
-// Direct API call to list runs by reference example IDs
-// SDK v0.4.7 has a bug where it sends reference_example as string instead of array
-async function listRunsByReferenceExamples(exampleIds: string[]): Promise<Run[]> {
-  const apiKey = process.env.LANGSMITH_API_KEY;
-  if (!apiKey) {
-    throw new Error("LANGSMITH_API_KEY not set");
-  }
-
-  const response = await fetch(`${API_URL}/runs/query`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      reference_example: exampleIds,
-      select: ["id", "reference_example_id"],
-      limit: 100,
-    }),
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Failed to fetch runs: ${response.status} ${text}`);
-  }
-
-  const data = await response.json();
-  return data.runs ?? [];
 }
 
 // Helper to collect async iterables into arrays
@@ -117,32 +80,25 @@ export async function listFeedbackForDataset(
   datasetId: string
 ): Promise<FeedbackResult> {
   const client = getClient();
-  // Fetch all examples (no pagination) for feedback - uses high limit
   const allExamples = await collect(client.listExamples({ datasetId }));
-  const examples = allExamples;
 
-  // Collect all run IDs by example using direct API call
-  // SDK v0.4.7 has a bug where it sends reference_example as string instead of array
-  const exampleIds = examples.map((e) => e.id);
-  const runs = exampleIds.length ? await listRunsByReferenceExamples(exampleIds) : [];
+  // Get source_run_ids from examples (runs where human annotations are attached)
+  // When manually annotating in LangSmith UI, feedback is attached to the source run
+  const sourceRunIds = allExamples
+    .map((e) => e.source_run_id)
+    .filter((id): id is string => id != null);
 
-  // Build example -> runIds mapping from run.reference_example_id
-  const exampleRunMap = new Map<string, string[]>();
-  const allRunIds: string[] = [];
-
-  for (const run of runs) {
-    const refExampleId = (run as { reference_example_id?: string }).reference_example_id;
-    if (refExampleId) {
-      const existing = exampleRunMap.get(refExampleId) ?? [];
-      existing.push(run.id);
-      exampleRunMap.set(refExampleId, existing);
-      allRunIds.push(run.id);
+  // Map source_run_id back to example
+  const sourceRunToExample = new Map<string, string>();
+  for (const example of allExamples) {
+    if (example.source_run_id) {
+      sourceRunToExample.set(example.source_run_id, example.id);
     }
   }
 
-  // Fetch all feedback in one batch
-  const feedbackItems = allRunIds.length
-    ? await collect(client.listFeedback({ runIds: allRunIds }))
+  // Fetch all feedback for source runs
+  const feedbackItems = sourceRunIds.length
+    ? await collect(client.listFeedback({ runIds: sourceRunIds }))
     : [];
 
   // Create run -> feedback mapping
@@ -159,15 +115,14 @@ export async function listFeedbackForDataset(
     feedbackKeySet.add(fb.key);
   }
 
-  // Build examples with feedback - aggregate by key using most recent feedback
-  const examplesWithFeedback: ExampleWithFeedback[] = examples.map((example) => {
-    const runIds = exampleRunMap.get(example.id) ?? [];
+  // Build examples with feedback from source runs
+  const examplesWithFeedback: ExampleWithFeedback[] = allExamples.map((example) => {
     const feedback: Record<string, Feedback> = {};
 
-    for (const runId of runIds) {
-      const feedbackList = runFeedbackMap.get(runId) ?? [];
-      for (const fb of feedbackList) {
-        // Keep the most recent feedback for each key
+    if (example.source_run_id) {
+      const sourceFeedback = runFeedbackMap.get(example.source_run_id) ?? [];
+      for (const fb of sourceFeedback) {
+        // Keep most recent feedback for each key
         if (!feedback[fb.key] || fb.created_at > feedback[fb.key].created_at) {
           feedback[fb.key] = fb;
         }
