@@ -11,6 +11,7 @@ interface DatasetListProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onRetry?: () => void;
+  hasSearchFilter?: boolean;
 }
 
 export function DatasetList({
@@ -20,6 +21,7 @@ export function DatasetList({
   selectedId,
   onSelect,
   onRetry,
+  hasSearchFilter = false,
 }: DatasetListProps) {
   if (loading) {
     return (
@@ -36,8 +38,12 @@ export function DatasetList({
   if (datasets.length === 0) {
     return (
       <EmptyState
-        title="No datasets"
-        description="Create a dataset in LangSmith to get started"
+        title={hasSearchFilter ? "No results found" : "No datasets"}
+        description={
+          hasSearchFilter
+            ? "Try adjusting your search"
+            : "Create a dataset in LangSmith to get started"
+        }
       />
     );
   }
