@@ -160,38 +160,48 @@ function promptToSummary(prompt: Prompt): PromptSummary {
   };
 }
 
-type ManifestMessage = {
+// LangChain manifest message type
+type LangChainManifestMessage = {
+  lc?: number;
   type?: string;
-  content?: string | Array<{ type: string; text?: string }>;
-  role?: string;
+  id?: string[];
+  kwargs?: {
+    prompt?: {
+      kwargs?: {
+        template?: string;
+      };
+    };
+    content?: string;
+  };
 };
 
 function manifestToMessages(manifest: Record<string, unknown>): PromptMessage[] {
   const messages: PromptMessage[] = [];
 
   // Handle ChatPromptTemplate format from LangChain
-  const promptMessages = manifest.messages as ManifestMessage[] | undefined;
+  // Messages are at manifest.kwargs.messages, not manifest.messages
+  const kwargs = manifest.kwargs as { messages?: LangChainManifestMessage[] } | undefined;
+  const promptMessages = kwargs?.messages;
+
   if (Array.isArray(promptMessages)) {
     for (const msg of promptMessages) {
-      const type = msg.type ?? msg.role ?? "";
+      // Get the type from the id array (e.g., ["langchain", "prompts", "chat", "SystemMessagePromptTemplate"])
+      const typeId = msg.id?.[3] ?? "";
       let role: PromptMessage["role"] = "user";
-      if (type === "system" || type === "SystemMessage" || type === "SystemMessagePromptTemplate") {
+      if (typeId.includes("System")) {
         role = "system";
-      } else if (type === "ai" || type === "AIMessage" || type === "AIMessagePromptTemplate" || type === "assistant") {
+      } else if (typeId.includes("AI") || typeId.includes("Assistant")) {
         role = "assistant";
-      } else if (type === "human" || type === "HumanMessage" || type === "HumanMessagePromptTemplate" || type === "user") {
+      } else if (typeId.includes("Human") || typeId.includes("User")) {
         role = "user";
       }
 
-      // Content can be string or array of content parts
+      // Content is at kwargs.prompt.kwargs.template or kwargs.content
       let content = "";
-      if (typeof msg.content === "string") {
-        content = msg.content;
-      } else if (Array.isArray(msg.content)) {
-        content = msg.content
-          .filter((part) => part.type === "text")
-          .map((part) => part.text ?? "")
-          .join("");
+      if (msg.kwargs?.prompt?.kwargs?.template) {
+        content = msg.kwargs.prompt.kwargs.template;
+      } else if (typeof msg.kwargs?.content === "string") {
+        content = msg.kwargs.content;
       }
 
       messages.push({ role, content });
