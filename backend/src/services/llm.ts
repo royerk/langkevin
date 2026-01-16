@@ -1,21 +1,28 @@
-import { generateText } from "ai";
+import { generateText, generateObject } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { z } from "zod";
 
 export interface Message {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
+export type ScoreConfig =
+  | { type: "boolean" }
+  | { type: "categories"; categories: string[] }
+  | { type: "continuous"; min: number; max: number };
+
 export interface EvaluationRequest {
   messages: Message[];
   model: string;
   variables: Record<string, unknown>;
+  scoreConfig?: ScoreConfig;
 }
 
 export interface EvaluationResponse {
-  score: number | null;
+  score: number | boolean | string | null;
   reasoning: string;
   raw: string;
 }
@@ -83,6 +90,27 @@ function substituteVariables(
   });
 }
 
+// Build Zod schema based on score configuration
+function buildScoreSchema(config: ScoreConfig) {
+  switch (config.type) {
+    case "boolean":
+      return z.object({
+        score: z.boolean(),
+        reasoning: z.string(),
+      });
+    case "categories":
+      return z.object({
+        score: z.enum(config.categories as [string, ...string[]]),
+        reasoning: z.string(),
+      });
+    case "continuous":
+      return z.object({
+        score: z.number().int().min(config.min).max(config.max),
+        reasoning: z.string(),
+      });
+  }
+}
+
 // Parse the response to extract score and reasoning
 function parseEvaluationResponse(text: string): {
   score: number | null;
@@ -128,6 +156,23 @@ export async function runEvaluation(
     content: substituteVariables(msg.content, request.variables),
   }));
 
+  // Use structured output when scoreConfig is provided
+  if (request.scoreConfig) {
+    const schema = buildScoreSchema(request.scoreConfig);
+    const { object } = await generateObject({
+      model,
+      messages: processedMessages,
+      schema,
+    });
+
+    return {
+      score: object.score,
+      reasoning: object.reasoning,
+      raw: JSON.stringify(object),
+    };
+  }
+
+  // Fall back to text parsing for backward compatibility
   const { text } = await generateText({
     model,
     messages: processedMessages,

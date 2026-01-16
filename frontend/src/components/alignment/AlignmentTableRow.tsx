@@ -1,12 +1,13 @@
-import type { ExampleWithFeedback, EvaluationResponse } from "../../types/api";
+import type { ExampleWithFeedback, EvaluationResponse, ScoreConfig } from "../../types/api";
 import { FeedbackCell } from "./FeedbackCell";
+import { checkAlignment } from "../../lib/scoreConfig";
 
 interface AlignmentTableRowProps {
   example: ExampleWithFeedback;
   feedbackKeys: string[];
   targetFeedbackKey: string | null;
-  onSelectTarget: (key: string) => void;
   evaluationResult: { response: EvaluationResponse | null; error: string | null } | null;
+  scoreConfig: ScoreConfig;
 }
 
 function truncateJson(obj: unknown, maxLength = 50): string {
@@ -15,12 +16,18 @@ function truncateJson(obj: unknown, maxLength = 50): string {
   return str.slice(0, maxLength) + "...";
 }
 
+function formatScore(score: number | boolean | string | null | undefined): string {
+  if (score === null || score === undefined) return "-";
+  if (typeof score === "boolean") return score ? "true" : "false";
+  return String(score);
+}
+
 export function AlignmentTableRow({
   example,
   feedbackKeys,
   targetFeedbackKey,
-  onSelectTarget,
   evaluationResult,
+  scoreConfig,
 }: AlignmentTableRowProps) {
   const targetFeedback = targetFeedbackKey
     ? example.feedback[targetFeedbackKey]
@@ -29,11 +36,9 @@ export function AlignmentTableRow({
   const evalScore = evaluationResult?.response?.score;
 
   const isAligned =
-    targetScore !== null &&
-    targetScore !== undefined &&
     evalScore !== null &&
     evalScore !== undefined &&
-    targetScore === evalScore;
+    checkAlignment(evalScore, targetScore, scoreConfig);
 
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50">
@@ -47,9 +52,7 @@ export function AlignmentTableRow({
         <FeedbackCell
           key={key}
           feedback={example.feedback[key]}
-          feedbackKey={key}
           isTarget={targetFeedbackKey === key}
-          onSelectTarget={onSelectTarget}
         />
       ))}
       <td className="px-3 py-2 text-sm">
@@ -63,7 +66,7 @@ export function AlignmentTableRow({
               className="text-blue-600 cursor-help"
               title={evaluationResult.response?.reasoning || evaluationResult.response?.raw}
             >
-              {evaluationResult.response?.score ?? "-"}
+              {formatScore(evaluationResult.response?.score)}
             </span>
           )
         ) : (

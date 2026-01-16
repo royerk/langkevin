@@ -12,10 +12,28 @@ router.get("/evaluation/models", (_req, res) => {
   res.json({ models: AVAILABLE_MODELS });
 });
 
+// Validate scoreConfig structure
+function isValidScoreConfig(
+  config: unknown
+): config is EvaluationRequest["scoreConfig"] {
+  if (!config) return true; // Optional field
+  if (typeof config !== "object") return false;
+  const c = config as Record<string, unknown>;
+  if (c.type === "boolean") return true;
+  if (c.type === "categories") {
+    return Array.isArray(c.categories) && c.categories.every((v) => typeof v === "string");
+  }
+  if (c.type === "continuous") {
+    return typeof c.min === "number" && typeof c.max === "number";
+  }
+  return false;
+}
+
 // POST /api/evaluation/run - Run evaluation with given prompt and variables
 router.post("/evaluation/run", async (req, res) => {
   try {
-    const { messages, model, variables } = req.body as EvaluationRequest;
+    const { messages, model, variables, scoreConfig } =
+      req.body as EvaluationRequest;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "messages array is required" });
@@ -26,8 +44,11 @@ router.post("/evaluation/run", async (req, res) => {
     if (!variables || typeof variables !== "object") {
       return res.status(400).json({ error: "variables object is required" });
     }
+    if (!isValidScoreConfig(scoreConfig)) {
+      return res.status(400).json({ error: "invalid scoreConfig" });
+    }
 
-    const result = await runEvaluation({ messages, model, variables });
+    const result = await runEvaluation({ messages, model, variables, scoreConfig });
     res.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
