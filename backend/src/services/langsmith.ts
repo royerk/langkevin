@@ -1,5 +1,14 @@
 import { Client } from "langsmith";
-import type { Dataset, Example, Feedback } from "../types/langsmith.js";
+import type { Prompt, PromptCommit } from "langsmith/schemas";
+import type {
+  Dataset,
+  Example,
+  Feedback,
+  PromptSummary,
+  PromptDetails,
+  PromptMessage,
+  PushPromptRequest,
+} from "../types/langsmith.js";
 
 export interface ExampleWithFeedback extends Example {
   feedback: Record<string, Feedback>;
@@ -136,4 +145,164 @@ export async function listFeedbackForDataset(
     examples: examplesWithFeedback,
     feedbackKeys: Array.from(feedbackKeySet).sort(),
   };
+}
+
+// Prompt Hub functions
+
+function promptToSummary(prompt: Prompt): PromptSummary {
+  return {
+    id: prompt.id,
+    name: prompt.full_name,
+    description: prompt.description ?? null,
+    tags: prompt.tags,
+    createdAt: prompt.created_at,
+    updatedAt: prompt.updated_at,
+  };
+}
+
+type ManifestMessage = {
+  type?: string;
+  content?: string | Array<{ type: string; text?: string }>;
+  role?: string;
+};
+
+function manifestToMessages(manifest: Record<string, unknown>): PromptMessage[] {
+  const messages: PromptMessage[] = [];
+
+  // Handle ChatPromptTemplate format from LangChain
+  const promptMessages = manifest.messages as ManifestMessage[] | undefined;
+  if (Array.isArray(promptMessages)) {
+    for (const msg of promptMessages) {
+      const type = msg.type ?? msg.role ?? "";
+      let role: PromptMessage["role"] = "user";
+      if (type === "system" || type === "SystemMessage" || type === "SystemMessagePromptTemplate") {
+        role = "system";
+      } else if (type === "ai" || type === "AIMessage" || type === "AIMessagePromptTemplate" || type === "assistant") {
+        role = "assistant";
+      } else if (type === "human" || type === "HumanMessage" || type === "HumanMessagePromptTemplate" || type === "user") {
+        role = "user";
+      }
+
+      // Content can be string or array of content parts
+      let content = "";
+      if (typeof msg.content === "string") {
+        content = msg.content;
+      } else if (Array.isArray(msg.content)) {
+        content = msg.content
+          .filter((part) => part.type === "text")
+          .map((part) => part.text ?? "")
+          .join("");
+      }
+
+      messages.push({ role, content });
+    }
+  }
+
+  return messages;
+}
+
+function messagesToManifest(messages: PromptMessage[]): Record<string, unknown> {
+  return {
+    lc: 1,
+    type: "constructor",
+    id: ["langchain", "prompts", "chat", "ChatPromptTemplate"],
+    kwargs: {
+      messages: messages.map((msg) => {
+        let id: string[];
+        if (msg.role === "system") {
+          id = ["langchain", "prompts", "chat", "SystemMessagePromptTemplate"];
+        } else if (msg.role === "assistant") {
+          id = ["langchain", "prompts", "chat", "AIMessagePromptTemplate"];
+        } else {
+          id = ["langchain", "prompts", "chat", "HumanMessagePromptTemplate"];
+        }
+        return {
+          lc: 1,
+          type: "constructor",
+          id,
+          kwargs: {
+            prompt: {
+              lc: 1,
+              type: "constructor",
+              id: ["langchain", "prompts", "prompt", "PromptTemplate"],
+              kwargs: {
+                template: msg.content,
+                input_variables: extractVariables(msg.content),
+                template_format: "f-string",
+              },
+            },
+          },
+        };
+      }),
+      input_variables: extractAllVariables(messages),
+    },
+  };
+}
+
+function extractVariables(content: string): string[] {
+  // Extract variables in {variable} format (LangChain style)
+  const matches = content.match(/\{([^{}]+)\}/g) ?? [];
+  return [...new Set(matches.map((m) => m.slice(1, -1)))];
+}
+
+function extractAllVariables(messages: PromptMessage[]): string[] {
+  const allVars = messages.flatMap((m) => extractVariables(m.content));
+  return [...new Set(allVars)];
+}
+
+export async function listPrompts(): Promise<PromptSummary[]> {
+  const prompts = await collect(getClient().listPrompts());
+  return prompts.map(promptToSummary);
+}
+
+export async function pullPrompt(name: string): Promise<PromptDetails> {
+  const client = getClient();
+  const prompt = await client.getPrompt(name);
+  if (!prompt) {
+    throw new Error(`Prompt not found: ${name}`);
+  }
+
+  const commit = await client.pullPromptCommit(name);
+  const messages = manifestToMessages(commit.manifest);
+
+  return {
+    name: prompt.full_name,
+    messages,
+    description: prompt.description ?? null,
+    tags: prompt.tags,
+    readme: prompt.readme ?? null,
+  };
+}
+
+export async function pushPrompt(request: PushPromptRequest): Promise<string> {
+  const client = getClient();
+  const { name, messages, description, tags = [], alignmentScore, alignmentDetails } = request;
+
+  // Build tags with alignment score
+  const allTags = [...tags];
+  if (alignmentScore !== undefined) {
+    allTags.push(`alignment:${Math.round(alignmentScore)}%`);
+  }
+
+  // Build readme with alignment details
+  let readme = "";
+  if (alignmentDetails) {
+    readme = `## Alignment Score: ${Math.round(alignmentScore ?? 0)}%\n\n`;
+    readme += `- Dataset: ${alignmentDetails.datasetName}\n`;
+    readme += `- Target: ${alignmentDetails.targetColumn}\n`;
+    readme += `- Aligned: ${alignmentDetails.alignedCount}/${alignmentDetails.totalCount} examples\n`;
+  }
+
+  // Convert messages to LangChain manifest format
+  const manifest = messagesToManifest(messages);
+
+  // Push the prompt
+  const url = await client.pushPrompt(name, {
+    object: manifest,
+    description,
+    readme: readme || undefined,
+    tags: allTags.length > 0 ? allTags : undefined,
+  });
+
+  return url;
 }
