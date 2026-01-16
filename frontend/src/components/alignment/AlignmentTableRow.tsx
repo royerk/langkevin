@@ -6,7 +6,6 @@ interface AlignmentTableRowProps {
   example: ExampleWithFeedback;
   feedbackKeys: string[];
   targetFeedbackKey: string | null;
-  onSelectTarget: (key: string) => void;
   evaluationResult: { response: EvaluationResponse | null; error: string | null } | null;
   scoreConfig: ScoreConfig;
 }
@@ -27,7 +26,6 @@ export function AlignmentTableRow({
   example,
   feedbackKeys,
   targetFeedbackKey,
-  onSelectTarget,
   evaluationResult,
   scoreConfig,
 }: AlignmentTableRowProps) {
@@ -54,9 +52,7 @@ export function AlignmentTableRow({
         <FeedbackCell
           key={key}
           feedback={example.feedback[key]}
-          feedbackKey={key}
           isTarget={targetFeedbackKey === key}
-          onSelectTarget={onSelectTarget}
         />
       ))}
       <td className="px-3 py-2 text-sm">

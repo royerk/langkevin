@@ -2,17 +2,10 @@ import type { Feedback } from "../../types/api";
 
 interface FeedbackCellProps {
   feedback: Feedback | undefined;
-  feedbackKey: string;
   isTarget: boolean;
-  onSelectTarget: (key: string) => void;
 }
 
-export function FeedbackCell({
-  feedback,
-  feedbackKey,
-  isTarget,
-  onSelectTarget,
-}: FeedbackCellProps) {
+export function FeedbackCell({ feedback, isTarget }: FeedbackCellProps) {
   const displayValue = feedback
     ? feedback.score !== null
       ? feedback.score.toString()
@@ -22,23 +15,13 @@ export function FeedbackCell({
     : "-";
 
   return (
-    <td className="px-3 py-2 text-sm">
-      <div className="flex items-center gap-2">
-        <input
-          type="radio"
-          name="targetFeedback"
-          checked={isTarget}
-          onChange={() => onSelectTarget(feedbackKey)}
-          className="w-3 h-3 text-blue-600 bg-white border-gray-300 focus:ring-blue-500"
-          title="Select as target for alignment"
-        />
-        <span
-          className={`${feedback ? "text-gray-700" : "text-gray-400"}`}
-          title={feedback?.comment ?? undefined}
-        >
-          {displayValue}
-        </span>
-      </div>
+    <td className={`px-3 py-2 text-sm ${isTarget ? "bg-blue-50" : ""}`}>
+      <span
+        className={feedback ? "text-gray-700" : "text-gray-400"}
+        title={feedback?.comment ?? undefined}
+      >
+        {displayValue}
+      </span>
     </td>
   );
 }

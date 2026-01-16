@@ -68,9 +68,28 @@ export function AlignmentTable({
   return (
     <div className="flex flex-col h-full bg-white">
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          Alignment Table
-        </h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+            Alignment Table
+          </h3>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-500">Target:</label>
+            <select
+              value={targetFeedbackKey ?? ""}
+              onChange={(e) => onSelectTarget(e.target.value)}
+              className="text-sm border border-gray-300 rounded px-2 py-1"
+            >
+              <option value="" disabled>
+                Select target column...
+              </option>
+              {feedbackKeys.map((key) => (
+                <option key={key} value={key}>
+                  {key}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
         {evaluatedCount > 0 && targetFeedbackKey && (
           <div className="text-sm text-gray-600">
             Aligned:{" "}
@@ -81,16 +100,14 @@ export function AlignmentTable({
           </div>
         )}
       </div>
-      {targetFeedbackKey && (
-        <div className="px-4 py-2 border-b border-gray-200">
-          <ScoreTypeConfig
-            config={scoreConfig}
-            onChange={onScoreConfigChange}
-            targetFeedbackKey={targetFeedbackKey}
-            examples={examples}
-          />
-        </div>
-      )}
+      <div className="px-4 py-2 border-b border-gray-200">
+        <ScoreTypeConfig
+          config={scoreConfig}
+          onChange={onScoreConfigChange}
+          targetFeedbackKey={targetFeedbackKey}
+          examples={examples}
+        />
+      </div>
       <div className="flex-1 overflow-auto">
         <table className="w-full text-left">
           <thead className="sticky top-0 bg-gray-50 border-b border-gray-200">
@@ -124,7 +141,6 @@ export function AlignmentTable({
                 example={example}
                 feedbackKeys={feedbackKeys}
                 targetFeedbackKey={targetFeedbackKey}
-                onSelectTarget={onSelectTarget}
                 evaluationResult={results.get(example.id) ?? null}
                 scoreConfig={scoreConfig}
               />

@@ -9,7 +9,7 @@ import { Button } from "../ui/Button";
 interface ScoreTypeConfigProps {
   config: ScoreConfig;
   onChange: (config: ScoreConfig) => void;
-  targetFeedbackKey: string;
+  targetFeedbackKey: string | null;
   examples: ExampleWithFeedback[];
 }
 
@@ -20,6 +20,14 @@ export function ScoreTypeConfig({
   examples,
 }: ScoreTypeConfigProps) {
   const [newCategory, setNewCategory] = useState("");
+
+  if (!targetFeedbackKey) {
+    return (
+      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
+        Select a target column to configure score type
+      </div>
+    );
+  }
 
   const handleTypeChange = (type: ScoreConfig["type"]) => {
     switch (type) {
