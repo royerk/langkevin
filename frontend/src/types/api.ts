@@ -49,14 +49,20 @@ export interface Message {
   content: string;
 }
 
+export type ScoreConfig =
+  | { type: "boolean" }
+  | { type: "categories"; categories: string[] }
+  | { type: "continuous"; min: number; max: number };
+
 export interface EvaluationRequest {
   messages: Message[];
   model: string;
   variables: Record<string, unknown>;
+  scoreConfig?: ScoreConfig;
 }
 
 export interface EvaluationResponse {
-  score: number | null;
+  score: number | boolean | string | null;
   reasoning: string;
   raw: string;
 }
