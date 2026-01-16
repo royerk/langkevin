@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import healthRouter from "./routes/health.js";
 import datasetsRouter from "./routes/datasets.js";
+import evaluationRouter from "./routes/evaluation.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.use("/api", healthRouter);
 app.use("/api", datasetsRouter);
+app.use("/api", evaluationRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
