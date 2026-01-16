@@ -21,8 +21,8 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
   if (value === null) {
     return (
       <div style={{ paddingLeft: indent }} className="font-mono text-sm py-0.5">
-        {keyName && <span className="text-gray-400">{keyName}: </span>}
-        <span className="text-gray-500 italic">null</span>
+        {keyName && <span className="text-gray-600">{keyName}: </span>}
+        <span className="text-gray-400 italic">null</span>
       </div>
     );
   }
@@ -30,8 +30,8 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
   if (typeof value === "boolean") {
     return (
       <div style={{ paddingLeft: indent }} className="font-mono text-sm py-0.5">
-        {keyName && <span className="text-gray-400">{keyName}: </span>}
-        <span className="text-purple-400">{value ? "true" : "false"}</span>
+        {keyName && <span className="text-gray-600">{keyName}: </span>}
+        <span className="text-purple-600">{value ? "true" : "false"}</span>
       </div>
     );
   }
@@ -39,8 +39,8 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
   if (typeof value === "number") {
     return (
       <div style={{ paddingLeft: indent }} className="font-mono text-sm py-0.5">
-        {keyName && <span className="text-gray-400">{keyName}: </span>}
-        <span className="text-blue-400">{value}</span>
+        {keyName && <span className="text-gray-600">{keyName}: </span>}
+        <span className="text-blue-600">{value}</span>
       </div>
     );
   }
@@ -52,8 +52,8 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
 
     return (
       <div style={{ paddingLeft: indent }} className="font-mono text-sm py-0.5">
-        {keyName && <span className="text-gray-400">{keyName}: </span>}
-        <span className="text-emerald-400">
+        {keyName && <span className="text-gray-600">{keyName}: </span>}
+        <span className="text-emerald-600">
           "{shouldTruncate ? displayValue.slice(0, 100) + "..." : displayValue}"
         </span>
       </div>
@@ -67,7 +67,7 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
     if (isEmpty) {
       return (
         <div style={{ paddingLeft: indent }} className="font-mono text-sm py-0.5">
-          {keyName && <span className="text-gray-400">{keyName}: </span>}
+          {keyName && <span className="text-gray-600">{keyName}: </span>}
           <span className="text-gray-500">[]</span>
         </div>
       );
@@ -78,12 +78,12 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           style={{ paddingLeft: indent }}
-          className="font-mono text-sm py-0.5 w-full text-left hover:bg-gray-800/50 rounded flex items-center gap-1"
+          className="font-mono text-sm py-0.5 w-full text-left hover:bg-gray-100 rounded flex items-center gap-1"
         >
-          <span className="text-gray-600 w-4 text-center">
+          <span className="text-gray-500 w-4 text-center">
             {isExpanded ? "▼" : "▶"}
           </span>
-          {keyName && <span className="text-gray-400">{keyName}: </span>}
+          {keyName && <span className="text-gray-600">{keyName}: </span>}
           <span className="text-gray-500">
             {isExpanded ? "[" : `[${value.length} items]`}
           </span>
@@ -119,7 +119,7 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
     if (isEmpty) {
       return (
         <div style={{ paddingLeft: indent }} className="font-mono text-sm py-0.5">
-          {keyName && <span className="text-gray-400">{keyName}: </span>}
+          {keyName && <span className="text-gray-600">{keyName}: </span>}
           <span className="text-gray-500">{"{}"}</span>
         </div>
       );
@@ -130,12 +130,12 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           style={{ paddingLeft: indent }}
-          className="font-mono text-sm py-0.5 w-full text-left hover:bg-gray-800/50 rounded flex items-center gap-1"
+          className="font-mono text-sm py-0.5 w-full text-left hover:bg-gray-100 rounded flex items-center gap-1"
         >
-          <span className="text-gray-600 w-4 text-center">
+          <span className="text-gray-500 w-4 text-center">
             {isExpanded ? "▼" : "▶"}
           </span>
-          {keyName && <span className="text-gray-400">{keyName}: </span>}
+          {keyName && <span className="text-gray-600">{keyName}: </span>}
           <span className="text-gray-500">
             {isExpanded ? "{" : `{${entries.length} keys}`}
           </span>
@@ -166,15 +166,15 @@ function JsonNode({ keyName, value, depth, defaultExpanded }: JsonNodeProps) {
   // Fallback
   return (
     <div style={{ paddingLeft: indent }} className="font-mono text-sm py-0.5">
-      {keyName && <span className="text-gray-400">{keyName}: </span>}
-      <span className="text-gray-300">{String(value)}</span>
+      {keyName && <span className="text-gray-600">{keyName}: </span>}
+      <span className="text-gray-700">{String(value)}</span>
     </div>
   );
 }
 
 export function JsonTree({ data, defaultExpanded = true }: JsonTreeProps) {
   return (
-    <div className="bg-gray-900 rounded-lg p-3 overflow-x-auto">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto">
       <JsonNode value={data} depth={0} defaultExpanded={defaultExpanded} />
     </div>
   );

@@ -11,9 +11,9 @@ export function ExampleCard({ example, index }: ExampleCardProps) {
     example.outputs && Object.keys(example.outputs).length > 0;
 
   return (
-    <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden">
-      <div className="px-4 py-3 bg-gray-800 border-b border-gray-700/50 flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-300">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+        <span className="text-sm font-medium text-gray-700">
           Example {index + 1}
         </span>
         <span className="text-xs text-gray-500 font-mono">
