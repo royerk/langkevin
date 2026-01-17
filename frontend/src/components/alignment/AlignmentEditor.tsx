@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
 import type { Message, Dataset, ScoreConfig, AlignmentDetails, ModelConfig } from "../../types/api";
 import { useFeedback } from "../../hooks/useFeedback";
 import { useEvaluation } from "../../hooks/useEvaluation";
@@ -103,7 +104,7 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
   }, [dataset.name, targetFeedbackKey, alignedCount, evaluatedCount]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
       <div className="flex-shrink-0 flex items-center gap-4 p-4 border-b border-gray-200 bg-white">
         <Button variant="ghost" size="sm" onClick={onBack}>
@@ -130,50 +131,68 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
         </div>
       </div>
 
-      {/* Top section - Prompt Editor + Config Panel */}
-      <div className="flex-shrink-0 flex border-b border-gray-200" style={{ height: '320px' }}>
-        {/* Left: Prompt Editor */}
-        <div className="flex-1 p-4 overflow-auto border-r border-gray-200">
-          <PromptEditor
-            messages={messages}
-            model={model}
-            onMessagesChange={setMessages}
-            onModelChange={setModel}
-            onRun={handleRun}
-            running={running}
-            progress={progress}
-            onLoadFromHub={() => setLoadModalOpen(true)}
-            onSaveToHub={() => setSaveModalOpen(true)}
-          />
-        </div>
-        {/* Right: Config Panel */}
-        <div className="w-80 flex-shrink-0 overflow-auto">
-          <ConfigPanel
-            feedbackKeys={feedbackKeys}
-            targetFeedbackKey={targetFeedbackKey}
-            onSelectTarget={handleSelectTarget}
-            scoreConfig={scoreConfig}
-            onScoreConfigChange={setScoreConfig}
-            examples={examples}
-            alignedCount={alignedCount}
-            evaluatedCount={evaluatedCount}
-          />
-        </div>
-      </div>
+      {/* Resizable panels for prompt editor and table */}
+      <PanelGroup orientation="vertical" className="flex-1 min-h-0">
+        {/* Top panel - Prompt Editor + Config Panel (horizontally resizable) */}
+        <Panel defaultSize={40} minSize={20}>
+          <PanelGroup orientation="horizontal" className="h-full border-b border-gray-200">
+            {/* Left: Prompt Editor */}
+            <Panel defaultSize={65} minSize={30}>
+              <div className="h-full p-4 overflow-auto">
+                <PromptEditor
+                  messages={messages}
+                  model={model}
+                  onMessagesChange={setMessages}
+                  onModelChange={setModel}
+                  onRun={handleRun}
+                  running={running}
+                  progress={progress}
+                  onLoadFromHub={() => setLoadModalOpen(true)}
+                  onSaveToHub={() => setSaveModalOpen(true)}
+                />
+              </div>
+            </Panel>
 
-      {/* Bottom section - full width table */}
-      <div className="flex-1 min-h-0 overflow-auto">
-        <AlignmentTable
-          examples={examples}
-          feedbackKeys={feedbackKeys}
-          targetFeedbackKey={targetFeedbackKey}
-          scoreConfig={scoreConfig}
-          results={results}
-          loading={feedbackLoading}
-          error={feedbackError}
-          onRetry={refetchFeedback}
-        />
-      </div>
+            {/* Vertical resize handle */}
+            <PanelResizeHandle className="w-1 bg-gray-200 hover:bg-blue-400 cursor-col-resize transition-colors" />
+
+            {/* Right: Config Panel */}
+            <Panel defaultSize={35} minSize={20}>
+              <div className="h-full overflow-auto">
+                <ConfigPanel
+                  feedbackKeys={feedbackKeys}
+                  targetFeedbackKey={targetFeedbackKey}
+                  onSelectTarget={handleSelectTarget}
+                  scoreConfig={scoreConfig}
+                  onScoreConfigChange={setScoreConfig}
+                  examples={examples}
+                  alignedCount={alignedCount}
+                  evaluatedCount={evaluatedCount}
+                />
+              </div>
+            </Panel>
+          </PanelGroup>
+        </Panel>
+
+        {/* Resize handle */}
+        <PanelResizeHandle className="h-1 bg-gray-200 hover:bg-blue-400 cursor-row-resize transition-colors" />
+
+        {/* Bottom panel - full width table */}
+        <Panel defaultSize={60} minSize={20}>
+          <div className="h-full overflow-auto">
+            <AlignmentTable
+              examples={examples}
+              feedbackKeys={feedbackKeys}
+              targetFeedbackKey={targetFeedbackKey}
+              scoreConfig={scoreConfig}
+              results={results}
+              loading={feedbackLoading}
+              error={feedbackError}
+              onRetry={refetchFeedback}
+            />
+          </div>
+        </Panel>
+      </PanelGroup>
 
       {/* Modals */}
       <LoadPromptModal
