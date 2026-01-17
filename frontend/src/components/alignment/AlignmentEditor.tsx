@@ -133,37 +133,45 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
 
       {/* Resizable panels for prompt editor and table */}
       <PanelGroup orientation="vertical" className="flex-1 min-h-0">
-        {/* Top panel - Prompt Editor + Config Panel */}
+        {/* Top panel - Prompt Editor + Config Panel (horizontally resizable) */}
         <Panel defaultSize={40} minSize={20}>
-          <div className="flex h-full border-b border-gray-200">
+          <PanelGroup orientation="horizontal" className="h-full border-b border-gray-200">
             {/* Left: Prompt Editor */}
-            <div className="flex-1 p-4 overflow-auto border-r border-gray-200">
-              <PromptEditor
-                messages={messages}
-                model={model}
-                onMessagesChange={setMessages}
-                onModelChange={setModel}
-                onRun={handleRun}
-                running={running}
-                progress={progress}
-                onLoadFromHub={() => setLoadModalOpen(true)}
-                onSaveToHub={() => setSaveModalOpen(true)}
-              />
-            </div>
+            <Panel defaultSize={65} minSize={30}>
+              <div className="h-full p-4 overflow-auto">
+                <PromptEditor
+                  messages={messages}
+                  model={model}
+                  onMessagesChange={setMessages}
+                  onModelChange={setModel}
+                  onRun={handleRun}
+                  running={running}
+                  progress={progress}
+                  onLoadFromHub={() => setLoadModalOpen(true)}
+                  onSaveToHub={() => setSaveModalOpen(true)}
+                />
+              </div>
+            </Panel>
+
+            {/* Vertical resize handle */}
+            <PanelResizeHandle className="w-1 bg-gray-200 hover:bg-blue-400 cursor-col-resize transition-colors" />
+
             {/* Right: Config Panel */}
-            <div className="w-80 flex-shrink-0 overflow-auto">
-              <ConfigPanel
-                feedbackKeys={feedbackKeys}
-                targetFeedbackKey={targetFeedbackKey}
-                onSelectTarget={handleSelectTarget}
-                scoreConfig={scoreConfig}
-                onScoreConfigChange={setScoreConfig}
-                examples={examples}
-                alignedCount={alignedCount}
-                evaluatedCount={evaluatedCount}
-              />
-            </div>
-          </div>
+            <Panel defaultSize={35} minSize={20}>
+              <div className="h-full overflow-auto">
+                <ConfigPanel
+                  feedbackKeys={feedbackKeys}
+                  targetFeedbackKey={targetFeedbackKey}
+                  onSelectTarget={handleSelectTarget}
+                  scoreConfig={scoreConfig}
+                  onScoreConfigChange={setScoreConfig}
+                  examples={examples}
+                  alignedCount={alignedCount}
+                  evaluatedCount={evaluatedCount}
+                />
+              </div>
+            </Panel>
+          </PanelGroup>
         </Panel>
 
         {/* Resize handle */}
