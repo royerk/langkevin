@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "react-resizable-panels";
 import type { Message, Dataset, ScoreConfig, AlignmentDetails, ModelConfig } from "../../types/api";
 import { useFeedback } from "../../hooks/useFeedback";
 import { useEvaluation } from "../../hooks/useEvaluation";
@@ -132,7 +132,7 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
       </div>
 
       {/* Resizable panels for prompt editor and table */}
-      <PanelGroup direction="vertical" className="flex-1 min-h-0">
+      <PanelGroup orientation="vertical" className="flex-1 min-h-0">
         {/* Top panel - Prompt Editor + Config Panel */}
         <Panel defaultSize={40} minSize={20}>
           <div className="flex h-full border-b border-gray-200">
