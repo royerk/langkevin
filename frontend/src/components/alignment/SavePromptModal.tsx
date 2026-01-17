@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Message, AlignmentDetails } from "../../types/api";
 import { savePrompt } from "../../lib/api";
 import { Modal } from "../ui/Modal";
@@ -11,6 +11,7 @@ interface SavePromptModalProps {
   messages: Message[];
   alignmentScore: number | null;
   alignmentDetails: AlignmentDetails | null;
+  loadedPromptName: string | null;
 }
 
 export function SavePromptModal({
@@ -19,6 +20,7 @@ export function SavePromptModal({
   messages,
   alignmentScore,
   alignmentDetails,
+  loadedPromptName,
 }: SavePromptModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -26,6 +28,22 @@ export function SavePromptModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
+
+  // Auto-fill name and description when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      // Auto-fill name if loaded from hub
+      if (loadedPromptName) {
+        setName(loadedPromptName);
+      }
+      // Auto-generate commit message from alignment data
+      if (alignmentScore !== null && alignmentDetails) {
+        setDescription(
+          `${Math.round(alignmentScore)}% aligned on ${alignmentDetails.datasetName} (${alignmentDetails.targetColumn})`
+        );
+      }
+    }
+  }, [isOpen, loadedPromptName, alignmentScore, alignmentDetails]);
 
   async function handleSave() {
     if (!name.trim()) {
@@ -84,30 +102,38 @@ export function SavePromptModal({
           {/* Name input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Prompt Name <span className="text-red-500">*</span>
+              Prompt Name {!loadedPromptName && <span className="text-red-500">*</span>}
             </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="my-evaluator-prompt"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Use lowercase letters, numbers, and hyphens
-            </p>
+            {loadedPromptName ? (
+              <p className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-700">
+                {loadedPromptName}
+              </p>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="my-evaluator-prompt"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Use lowercase letters, numbers, and hyphens
+                </p>
+              </>
+            )}
           </div>
 
-          {/* Description input */}
+          {/* Commit Message input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              Commit Message
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional description for this prompt..."
-              rows={3}
+              placeholder="Describe your changes..."
+              rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
             />
           </div>
