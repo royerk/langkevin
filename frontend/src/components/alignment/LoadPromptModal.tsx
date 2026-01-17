@@ -10,7 +10,7 @@ import { ErrorMessage } from "../ui/ErrorMessage";
 interface LoadPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoad: (messages: Message[], modelConfig?: ModelConfig) => void;
+  onLoad: (messages: Message[], modelConfig?: ModelConfig, promptName?: string) => void;
 }
 
 export function LoadPromptModal({ isOpen, onClose, onLoad }: LoadPromptModalProps) {
@@ -74,7 +74,7 @@ export function LoadPromptModal({ isOpen, onClose, onLoad }: LoadPromptModalProp
 
   function handleLoad() {
     if (preview) {
-      onLoad(preview.messages, preview.modelConfig);
+      onLoad(preview.messages, preview.modelConfig, preview.name);
       handleClose();
     }
   }
