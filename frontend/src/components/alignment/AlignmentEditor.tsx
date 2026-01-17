@@ -38,6 +38,7 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
   const [scoreConfig, setScoreConfig] = useState<ScoreConfig>({ type: "continuous", min: 1, max: 5 });
   const [loadModalOpen, setLoadModalOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [loadedPromptName, setLoadedPromptName] = useState<string | null>(null);
 
   const {
     examples,
@@ -61,8 +62,9 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
     [examples]
   );
 
-  const handleLoadPrompt = useCallback((messages: Message[], modelConfig?: ModelConfig) => {
+  const handleLoadPrompt = useCallback((messages: Message[], modelConfig?: ModelConfig, promptName?: string) => {
     setMessages(messages);
+    setLoadedPromptName(promptName ?? null);
     if (modelConfig?.model) {
       setModel(modelConfig.model);
     }
@@ -185,6 +187,7 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
         messages={messages}
         alignmentScore={alignmentScore}
         alignmentDetails={alignmentDetails}
+        loadedPromptName={loadedPromptName}
       />
     </div>
   );
