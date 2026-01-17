@@ -4,7 +4,6 @@ import { DatasetList } from "./components/datasets/DatasetList";
 import { DatasetBadge } from "./components/datasets/DatasetBadge";
 import { ExampleCard } from "./components/examples/ExampleCard";
 import { AlignmentEditor } from "./components/alignment/AlignmentEditor";
-import { Button } from "./components/ui/Button";
 import { SearchInput } from "./components/ui/SearchInput";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { ErrorMessage } from "./components/ui/ErrorMessage";
@@ -114,9 +113,12 @@ function App() {
             <>
               {/* Start Aligning button - prominent at top */}
               <div className="p-4 border-b border-gray-200">
-                <Button onClick={handleStartAligning} className="w-full">
-                  Start Aligning
-                </Button>
+                <button
+                  onClick={handleStartAligning}
+                  className="btn-cyberpunk w-full py-3 px-6 text-lg font-bold text-white rounded-lg cursor-pointer relative z-10"
+                >
+                  ✨ Start Aligning ✨
+                </button>
               </div>
 
               {/* Dataset info section */}
