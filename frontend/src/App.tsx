@@ -67,7 +67,7 @@ function App() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
           <AlignmentEditor
             dataset={selectedDataset}
             onBack={handleBackToSelection}

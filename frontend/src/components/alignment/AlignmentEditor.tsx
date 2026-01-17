@@ -104,7 +104,7 @@ export function AlignmentEditor({ dataset, onBack }: AlignmentEditorProps) {
   }, [dataset.name, targetFeedbackKey, alignedCount, evaluatedCount]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
       <div className="flex-shrink-0 flex items-center gap-4 p-4 border-b border-gray-200 bg-white">
         <Button variant="ghost" size="sm" onClick={onBack}>
