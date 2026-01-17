@@ -342,7 +342,13 @@ export async function pullPrompt(name: string): Promise<PromptDetails> {
 
 export async function pushPrompt(request: PushPromptRequest): Promise<string> {
   const client = getClient();
-  const { name, messages, description, tags = [], alignmentScore, alignmentDetails } = request;
+  const { name, messages, tags = [], alignmentScore, alignmentDetails } = request;
+
+  // Use provided description or generate fallback from alignment data
+  let description = request.description;
+  if (!description && alignmentScore !== undefined && alignmentDetails) {
+    description = `${Math.round(alignmentScore)}% aligned on ${alignmentDetails.datasetName} (${alignmentDetails.targetColumn})`;
+  }
 
   // Build tags with alignment score
   const allTags = [...tags];
